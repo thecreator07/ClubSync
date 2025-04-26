@@ -1,0 +1,41 @@
+Backend-
+ schema creation ✅
+ authentication
+ middleware
+ controller(routes)
+ testing
+
+frontend-
+ signup/login
+ landingPage-
+      heroPage
+      eventlist
+      clublists
+      EventsGroupPic
+
+ clubRegistrationPage
+ clubPage-
+      heroPic
+      about
+      description
+      members
+      contact
+      pastEvent
+      incomingEvent
+      clubImages
+
+ eventRegistartionPage  
+ eventPage-
+      heroPic
+      about
+      description
+      contact
+      Images
+
+ profilePage-
+      updateProfile
+      JoinedClub
+      joinedEvent
+
+ AboutPage
+ ContactPage     
