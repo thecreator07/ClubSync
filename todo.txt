@@ -7,35 +7,311 @@ Backend-
 
 frontend-
  signup/login
- landingPage-
-      heroPage
-      eventlist
-      clublists
-      EventsGroupPic
 
- clubRegistrationPage
- clubPage-
-      heroPic
-      about
-      description
-      members
-      contact
-      pastEvent
-      incomingEvent
-      clubImages
 
- eventRegistartionPage  
- eventPage-
-      heroPic
-      about
-      description
-      contact
-      Images
+LandingPage-
++----------------------------------------------------+
+| Navbar: [Logo]        [Clubs] [Events] [Login] [Button: Get Started] |
++----------------------------------------------------+
 
- profilePage-
-      updateProfile
-      JoinedClub
-      joinedEvent
+| HERO SECTION |
+| -------------------------------------------------- |
+| Big Heading: "Connect. Create. Celebrate!"         |
+| Subtext: "Join clubs, attend events, and grow!"    |
+| [Explore Clubs] button                             |
+| [Image: College Vibe / Students]                   |
+| -------------------------------------------------- |
 
- AboutPage
- ContactPage     
+| HOW IT WORKS |
+| -------------------------------------------------- |
+| Step 1: 🔍 Discover Clubs    | Step 2: 🎉 Join Events    | Step 3: 🏆 Earn Rewards |
+| Short 2-line description each.                     |
+| -------------------------------------------------- |
+
+| POPULAR CLUBS |
+| -------------------------------------------------- |
+| [Club Card] [Club Card] [Club Card] [Club Card]    |
+| Club logo, short name, small description           |
+| Button: "View Club"                                |
+| -------------------------------------------------- |
+
+| UPCOMING EVENTS |
+| -------------------------------------------------- |
+| [Event Card Carousel or Grid]                     |
+| Event Image | Name | Date | "Register Now" button |
+| -------------------------------------------------- |
+
+| STUDENT SUCCESS STORIES (Testimonials) |
+| -------------------------------------------------- |
+| "Thanks to XYZ Club, I launched my startup!"       |
+| Student image, quote                              |
+| 2-3 such blocks                                   |
+| -------------------------------------------------- |
+
+| GAMIFICATION |
+| -------------------------------------------------- |
+| Icon of Trophy/Badges                             |
+| Text: "Collect points, earn rewards!"             |
+| [See Rewards] Button                              |
+| -------------------------------------------------- |
+
+| FINAL CTA BANNER |
+| -------------------------------------------------- |
+| "Ready to Join the Best Communities?"             |
+| [Sign Up Now] Button                              |
+| Colorful background                              |
+| -------------------------------------------------- |
+
+| FOOTER |
+| -------------------------------------------------- |
+| About | Contact | Terms | Privacy Policy          |
+| Small logo + social icons                         |
+| -------------------------------------------------- |
+
+
+ClubRegistrationPage-
+      [ Club Name ] (input)
+      [ Club Short Description ] (textarea)
+      [ Club Full Description ] (rich text editor)
+      [ Upload Club Banner Images (multiple)] (file input)
+      [ Upload Club Logo ] (file input)
+      [ Contact Email, Instagram, etc. ]
+      [ Submit Button ]
+
+
+
+ClubPage-
+------------------------------------------------------
+[ Club Banner Carousel (Multiple Images) ]
+------------------------------------------------------
+[ Club Logo ]   [ Club Name ]
+[ About Club Short Description ]
+------------------------------------------------------
+[ President: Avatar + Name ]
+[ Total Members: 120 ]
+------------------------------------------------------
+[ JOIN CLUB Button if not joined ]
+[ LEAVE CLUB Button if joined ]
+------------------------------------------------------
+[ Club Full Description Section ]
+------------------------------------------------------
+[ 📅 Upcoming Events List ]
+- Event 1 (Date, Title, Short Desc, Join Button)
+- Event 2 (Date, Title, Short Desc, Join Button)
+------------------------------------------------------
+[ 📜 Past Events List (with event images) ]
+- Event 1 (Completed)
+- Event 2 (Completed)
+------------------------------------------------------
+[ 🧑‍🤝‍🧑 Members Grid (with profile pictures + role badges) ]
+------------------------------------------------------
+[ Contact Section ]
+- Club Instagram
+- Email
+- LinkedIn
+- Phone
+     
+      
+
+EventRegistartionPage-
+     [ Event Name ]
+     [ Event Short Description ]
+     [ Full Event Details (rich text editor)]
+     [ Event Start Date / End Date ]
+     [ Upload Event Images (multiple)]
+     [ Max Participants ]
+     [ Reward Points ]
+     [ Create Event Button ]
+
+
+
+EventPage-
++--------------------------------------------------------------------------------+
+| Navbar: [Logo] [Clubs] [Events] [Login] [Dashboard]                            |
++--------------------------------------------------------------------------------+
+
+| ████████████████████████████████████████████████████████████████████████████████ |
+| [Hero Banner Image: Full Width Event Image]                                     |
+| ████████████████████████████████████████████████████████████████████████████████ |
+
+| 🗓️  EVENT INFO SECTION                                                          |
+| Title: "AI and Robotics Hackathon 2025"                                          |
+| [Date] [Time] [Venue] [Tags: Hackathon, Tech] [Category Badge]                   |
+| [Button: Register Now]                                                           |
+
+| 📝 ABOUT THE EVENT                                                              |
+| "Join us for an exciting hackathon on AI and Robotics..."                       |
+
+| 🎯 ORGANIZED BY:                                                                |
+| [Club Logo] Tech Society                                                        |
+| "Leading club for innovation and tech"                                           |
+| [Button: View Club Page]                                                         |
+
+| 🖼️  EVENT GALLERY                                                               |
+| [Image Carousel]                                                                |
+| [Upload from Cloudinary]                                                        |
+
+| 🧑‍🤝‍🧑 PARTICIPANTS (optional)                                                    |
+| [User Avatars x 6] "+50 more"                                                    |
+
+| 📚 PAST EVENTS by Tech Society                                                   |
+| [Event Card 1] [Event Card 2] [Event Card 3] --> (Scroll horizontally)           |
+
+| 🚀 FINAL CALL-TO-ACTION                                                         |
+| "Don't miss your chance to be part of innovation!"                              |
+| [Button: Register Now]                                                           |
+
+| Footer: [About] [Contact] [Privacy]                                              |
++--------------------------------------------------------------------------------+
+
+
+ProfilePage-
+            [ Navbar ]
+
+        [ Big Cover Banner ]
+
+[ Avatar ]  [ Name ]  [ Email ]  [ Edit Profile ]
+
+[ Bio Section ]
+
+[ Stats Cards ]
+🔥 Points | 🏆 Events Joined | 🎯 Clubs Joined | 🛡️ Role
+
+[ Joined Clubs Section ]
+- Tech Society
+- Drama Club
+- Photography Club
+
+[ Past Events Participated ]
+- Hackathon 2025
+- Annual Drama Fest
+- Photography Exhibition
+
+[ Settings / Manage Profile ]
+
+[ Footer ]
+
+
+AboutPage-
++------------------------------------------------+
+|                    Navbar                      |
+|------------------------------------------------|
+| Home | Clubs | Events | About Us | Dashboard   |
++------------------------------------------------+
+
++------------------------------------------------+
+|                Hero Section                    |
+|------------------------------------------------|
+|  [ Big Heading: "Empowering Student Life" ]     |
+|  [ Short tagline: "Explore. Engage. Excel." ]    |
+|  [ Eye-catching illustration or photo ]         |
++------------------------------------------------+
+
++------------------------------------------------+
+|            Our Mission Section                 |
+|------------------------------------------------|
+|  Title: "Our Mission"                           |
+|  Text: "We connect students with passions,      |
+|  learning, leadership, and life-changing        |
+|  opportunities through vibrant clubs and events." |
++------------------------------------------------+
+
++------------------------------------------------+
+|             How It Works (Steps)               |
+|------------------------------------------------|
+| Step 1: Find Clubs 🎯                           |
+| Step 2: Join Events 🎉                          |
+| Step 3: Earn Points 🏆                          |
+| Step 4: Redeem Rewards 🎁                       |
+| [ Each step with cute icons ]                   |
++------------------------------------------------+
+
++------------------------------------------------+
+|             Meet the Team Section              |
+|------------------------------------------------|
+|  [ Profile cards for team/admins ]              |
+|  - Name                                         |
+|  - Role (Founder, Admin, Developer)             |
+|  - Short Bio                                   |
+|  - Social Links (LinkedIn, GitHub)              |
++------------------------------------------------+
+
++------------------------------------------------+
+|             Testimonials Section               |
+|------------------------------------------------|
+|  [ Carousel of student quotes ]                |
+|  - "Joining clubs changed my college life!"    |
+|  - "Best way to make friends and grow!"         |
++------------------------------------------------+
+
++------------------------------------------------+
+|             FAQ Section                        |
+|------------------------------------------------|
+|  Accordion style:                              |
+|  Q: How to join a club?                        |
+|  A: Simply go to the Clubs page and request!    |
+|                                                |
+|  Q: How do points work?                        |
+|  A: Participate actively to earn points.        |
++------------------------------------------------+
+
++------------------------------------------------+
+|             Contact Us CTA                     |
+|------------------------------------------------|
+|  "Want to create a new club? Contact Us!"       |
+|  [ Contact Button ]                            |
++------------------------------------------------+
+
++------------------------------------------------+
+|                    Footer                      |
+|------------------------------------------------|
+| Links to Socials | College Address | Terms     |
++------------------------------------------------+
+
+
+
+ContactPage-
++------------------------------------------------+
+|                    Navbar                      |
+|------------------------------------------------|
+| Home | Clubs | Events | About Us | Contact Us   |
++------------------------------------------------+
+
++------------------------------------------------+
+|              Contact Hero Section             |
+|------------------------------------------------|
+|  [ Big Heading: "Get in Touch" ]                |
+|  [ Small tagline: "We're here to help you." ]   |
+|  [ Nice Illustration (handshake / mail) ]       |
++------------------------------------------------+
+
++------------------------------------------------+
+|               Contact Form Section             |
+|------------------------------------------------|
+|  [ Left Column: Contact Form ]                  |
+|  - Name (input)                                |
+|  - Email (input)                               |
+|  - Subject (input)                             |
+|  - Message (textarea)                          |
+|  - [Submit Button]                             |
++------------------------------------------------+
+
+|  [ Right Column: Contact Information ]         |
+|  - 📍 Address (College Campus Location)         |
+|  - 📞 Phone (Admin contact or Support)          |
+|  - ✉️ Email (Official email)                   |
+|  - 🌐 Social Links (LinkedIn, Instagram)        |
++------------------------------------------------+
+
++------------------------------------------------+
+|                Map Section (Optional)          |
+|------------------------------------------------|
+|  [ Embedded Google Map of college location ]   |
++------------------------------------------------+
+
++------------------------------------------------+
+|                    Footer                      |
+|------------------------------------------------|
+| Social Links | Address | Privacy Policy        |
++------------------------------------------------+
+    

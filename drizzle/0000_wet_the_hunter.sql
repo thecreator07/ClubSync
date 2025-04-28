@@ -1,8 +1,10 @@
+CREATE TYPE "public"."role" AS ENUM('student', 'admin', 'user');--> statement-breakpoint
+CREATE TYPE "public"."membership_role" AS ENUM('member', 'president', 'vice-president');--> statement-breakpoint
 CREATE TABLE "banners" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"banner_image" varchar(500) NOT NULL,
 	"banner_description" varchar(500) NOT NULL,
-	"date" date DEFAULT now() NOT NULL
+	"created_at" date DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "clubs" (
@@ -15,7 +17,9 @@ CREATE TABLE "clubs" (
 	"contact_phone" varchar(20),
 	"cover_image_url" varchar(255),
 	"logo_image_url" varchar(255),
+	"verified" integer DEFAULT 0,
 	"created_at" date DEFAULT now(),
+	CONSTRAINT "clubs_name_unique" UNIQUE("name"),
 	CONSTRAINT "clubs_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
@@ -36,13 +40,15 @@ CREATE TABLE "events" (
 CREATE TABLE "club_images" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"club_id" integer NOT NULL,
-	"image_url" varchar(500) NOT NULL
+	"image_url" varchar(500) NOT NULL,
+	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "event_images" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"event_id" integer NOT NULL,
-	"image_url" varchar(500) NOT NULL
+	"image_url" varchar(500) NOT NULL,
+	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -58,10 +64,11 @@ CREATE TABLE "users" (
 	"council" varchar(100),
 	"social" varchar(100),
 	"aoi" varchar(100),
-	"role" varchar(100),
+	"role" "role" DEFAULT 'user' NOT NULL,
 	"id_card" varchar(100),
 	"verified" integer DEFAULT 0,
-	"created_at" date DEFAULT now()
+	"created_at" date DEFAULT now(),
+	"avatar" varchar(255)
 );
 --> statement-breakpoint
 CREATE TABLE "event_registrations" (
@@ -75,7 +82,7 @@ CREATE TABLE "memberships" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"club_id" integer NOT NULL,
-	"role" varchar(20) DEFAULT 'member',
+	"role" "membership_role" DEFAULT 'member',
 	"joined_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
@@ -89,6 +96,7 @@ CREATE TABLE "rewards" (
 --> statement-breakpoint
 ALTER TABLE "events" ADD CONSTRAINT "events_club_id_clubs_id_fk" FOREIGN KEY ("club_id") REFERENCES "public"."clubs"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "club_images" ADD CONSTRAINT "club_images_club_id_clubs_id_fk" FOREIGN KEY ("club_id") REFERENCES "public"."clubs"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "event_images" ADD CONSTRAINT "event_images_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "memberships" ADD CONSTRAINT "memberships_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "memberships" ADD CONSTRAINT "memberships_club_id_clubs_id_fk" FOREIGN KEY ("club_id") REFERENCES "public"."clubs"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "rewards" ADD CONSTRAINT "rewards_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;

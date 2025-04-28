@@ -25,32 +25,28 @@ import { toast } from "sonner";
 
 export default function SignUpPage() {
   const router = useRouter();
-  //   const { toast } = useToast();
-
-  // Local state for username availability check
-
-  // React Hook Form setup with Zod
+  
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  // Submission handler
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     try {
       const res = await axios.post<ApiResponse>("/api/sign-up", data);
       console.log(res);
-      toast("Success", {
+      toast.success("Success", {
         description: res.data.message,
         duration: 4000,
       });
-      router.replace(`/sign-in}`);
+      
+      router.replace(`/sign-in`);
     } catch (err) {
       const error = err as AxiosError<ApiResponse>;
 
       console.log(error);
       toast.error("SignUp Failed", {
-        description: error.response?.data.message ?? "Something went wrong",
+        description: error.response?.data.message  ?? "Something went wrong",
         duration: 5000,
       });
     }

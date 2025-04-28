@@ -1,5 +1,7 @@
 import { pgTable, serial, varchar, text, date, integer, timestamp } from "drizzle-orm/pg-core";
 import { clubs } from "./clubs";
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export const events = pgTable("events", {
   id: serial("id").primaryKey(),
@@ -16,3 +18,6 @@ export const events = pgTable("events", {
 });
 
 
+export const eventSelectSchema = createSelectSchema(events, {})
+export const eventInsertSchema = createInsertSchema(events, { registrationLink: z.string().url().optional(),})
+export const eventUpdateSchema = createUpdateSchema(events, { registrationLink: z.string().url().optional(),})

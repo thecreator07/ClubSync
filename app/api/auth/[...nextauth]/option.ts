@@ -1,10 +1,10 @@
 // authOptions.ts
 import { db } from "@/db";
-import { users } from "@/db/schema"; // Your users table
+import { members, users } from "@/db/schema"; // Your users table
 import { eq } from "drizzle-orm";
 import { compare } from "bcryptjs"; // Secure password comparison
 import CredentialsProvider from "next-auth/providers/credentials";
-import { NextAuthOptions, Session } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import { User as NextAuthUser } from "next-auth";
 
 // Extend the Session and User types to include the 'id' property
@@ -27,29 +27,43 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 // Find user by email
-                const userResult = await db
+                const [userResult] = await db
                     .select()
                     .from(users)
                     .where(eq(users.email, credentials.email))
                     .limit(1);
 
-                const user = userResult[0];
-
-                if (!user) {
+                if (!userResult) {
                     throw new Error("User not found");
                 }
 
                 // Compare password
-                const isValidPassword = await compare(credentials.password, user.password);
+                const isValidPassword = await compare(credentials.password, userResult.password);
                 if (!isValidPassword) {
                     throw new Error("Invalid password");
                 }
 
+                // Find if the user is a member of any club
+                const [clubmemberresult] = await db
+                    .select()
+                    .from(members)
+                    .where(eq(members.userId, userResult.id))
+                    .limit(1);
+
+                let clubRole = clubmemberresult?.role || "";
+
+                // If the user is not a member of any club, assign a default role (e.g., "guest" or "non-member")
+                if (!clubmemberresult) {
+                    clubRole = "non-member";  // Default role for non-members
+                }
+
                 // Return user info (JWT will store this)
                 return {
-                    id: user.id.toString(),
-                    email: user.email,
-                    name: `${user.firstname} ${user.lastname}`.trim() || "", // Optional: if you want to add name to JWT
+                    id: userResult.id.toString(),
+                    email: userResult.email,
+                    name: userResult.firstname,
+                    role: userResult.role,
+                    clubRole,
                 };
             },
         }),
@@ -61,15 +75,19 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.email = user.email;
                 token.name = user.name;
+                token.role = user.role;
+                token.clubRole = user.clubRole;
             }
             return token;
         },
         async session({ session, token }) {
             // Add JWT fields to session
-            if (token&& session?.user) {
-                session.user.id = token.id as string; 
+            if (token && session?.user) {
+                session.user.id = token.id as string;
                 session.user.email = token.email;
                 session.user.name = token.name;
+                session.user.role = token.role;
+                session.user.clubRole = token.clubRole;
             }
             return session;
         },
@@ -78,5 +96,5 @@ export const authOptions: NextAuthOptions = {
         signIn: "/auth/login", // Custom login page (optional)
         error: "/auth/error",  // Custom error page (optional)
     },
-    secret: process.env.NEXTAUTH_SECRET, // Very important! 🔒
+    secret: process.env.NEXTAUTH_SECRET!, // Very important! 🔒
 };

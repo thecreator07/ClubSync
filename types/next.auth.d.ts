@@ -6,6 +6,8 @@ declare module 'next-auth' {
             id: string;
             email?: string | null;
             name?: string | null;
+            role?: string | null;
+            clubRole?: string | null;
         } & DefaultSession['user'];
     }
 
@@ -13,6 +15,8 @@ declare module 'next-auth' {
         id: string;
         name?: string | null;
         email?: string | null;
+        role?: string | null;
+        clubRole?: string | null;
     }
 }
 
@@ -21,5 +25,7 @@ declare module 'next-auth/jwt' {
         id: string;
         email?: string | null;
         name?: string | null;
+        role?: string | null;
+        clubRole?: string | null;
     }
 }

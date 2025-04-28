@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    domains: ['https://qph.cf2.quoracdn.net'],
+  },
 };
 
 export default nextConfig;

@@ -36,7 +36,7 @@ export async function POST(req: Request) {
             {
                 success: true,
                 message: "User registered successfully",
-                data: res
+                data: res[0]
             },
             { status: 201 }
         );
