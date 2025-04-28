@@ -49,7 +49,7 @@ export default function SignInForm() {
     }
 
     if (result?.url) {
-      router.replace("/");
+      router.replace("/clubs/clubsera");
     }
   };
 
