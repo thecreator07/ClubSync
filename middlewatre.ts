@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
       url.pathname.startsWith('/sign-up') ||
       url.pathname === '/')
   ) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/clubs/dance', request.url));
   }
 
   // If user is not authenticated, restrict access to clubs and events pages

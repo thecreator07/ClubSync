@@ -10,9 +10,9 @@ import {
   Card,
   CardHeader,
   CardTitle,
-  CardDescription,
+  // CardDescription,
   CardContent,
-  CardFooter,
+  // CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -226,7 +226,7 @@ export default function EventPage() {
         <div className="w-full max-w-4xl text-center px-4">
           <h2 className="text-2xl font-bold mb-2">Final Call to Action</h2>
           <p className="mb-4 text-gray-700 dark:text-gray-300">
-            Don't miss your chance to be part of innovation!
+            Don&apos;t miss your chance to be part of innovation!
           </p>
           <Link href={event.registrationLink} passHref>
             <Button

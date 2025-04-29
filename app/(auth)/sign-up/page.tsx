@@ -57,10 +57,10 @@ export default function SignUpPage() {
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg space-y-6">
         <div className="text-center">
           <h1 className="text-3xl dark:text-black font-bold">
-            Join True Feedback
+            Join ClubSync
           </h1>
           <p className="text-gray-600 mt-2">
-            Sign up to start your anonymous adventure
+            Sign up to start your adventure
           </p>
         </div>
 
@@ -73,10 +73,10 @@ export default function SignUpPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
-                  <Input {...field} placeholder="you@example.com" />
-                  <p className="text-xs text-gray-400 mt-1">
+                  <Input {...field} placeholder="you@example.com"  className="text-amber-950"/>
+                  {/* <p className="text-xs text-gray-400 mt-1">
                     We’ll send you a verification code.
-                  </p>
+                  </p> */}
                   <FormMessage />
                 </FormItem>
               )}
@@ -89,7 +89,7 @@ export default function SignUpPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
-                  <Input type="password" {...field} placeholder="••••••••" />
+                  <Input type="password" {...field} placeholder="••••••••" className="text-amber-950"/>
                   <FormMessage />
                 </FormItem>
               )}

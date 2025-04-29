@@ -52,7 +52,7 @@ const router = useRouter()
       <div className="relative w-full h-60 bg-blue-600">
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="absolute inset-0 flex justify-center items-center">
-          <h1 className="text-white text-3xl font-bold">Profile</h1>
+          <h1 className="text-white text-3xl font-bold">{session?.user.name}</h1>
         </div>
       </div>
 
@@ -65,7 +65,7 @@ const router = useRouter()
           <div className="flex flex-col">
             <h2 className="text-2xl font-semibold">{session?.user?.name&&""}</h2>
             <p className="text-gray-500">{session?.user?.email}</p>
-            <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">
+            <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md" onClick={()=>router.push(`/users/${session?.user?.id}/manage`)}>
               Edit Profile
             </button>
           </div>

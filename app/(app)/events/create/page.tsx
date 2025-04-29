@@ -99,7 +99,7 @@ console.log(json)
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Create New Event</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Create New Event</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Club Dropdown */}
