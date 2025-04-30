@@ -40,7 +40,7 @@ const Navbar = () => {
                   router.push(`/users/${session?.user.id}/profile`)
                 }
               >
-                {session.user.name}
+                {session.user.name||"profile"}
               </Button>
               <button
                 onClick={handleLogout}

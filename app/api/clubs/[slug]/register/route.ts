@@ -14,6 +14,7 @@ export async function POST(
     const { slug } = await params;
 
   const session = await getServerSession(authOptions);
+  // const {update}=await getServerSession(authOptions)
   const user = session?.user;
 
   if (!session || !user) {

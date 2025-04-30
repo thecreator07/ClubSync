@@ -5,7 +5,7 @@ import { createInsertSchema, createSelectSchema, createUpdateSchema } from "driz
 import { z } from "zod";
 
 // Create Postgres ENUM for membership role
-export const membershipRoleEnum = pgEnum('membership_role', ['member', 'president','vice-president']); 
+export const membershipRoleEnum = pgEnum('membership_role', ['member', 'president','secretary',"treasurer"]); 
 
 export const eventRegistrations = pgTable('event_registrations', {
     id: serial('id').primaryKey(),

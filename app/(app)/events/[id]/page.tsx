@@ -43,8 +43,8 @@ export default function EventPage() {
 
     const fetchEvent = async () => {
       try {
-        const res = await fetch(`/api/events/${id}`);
-        const data = await res.json();
+        const res = await fetch(`/api/events/${id}`,{next:{revalidate:60,tags:[`events/${id}`]}});
+      const data = await res.json();
 
         if (!res.ok) {
           toast.error(data.message || "Event not found");

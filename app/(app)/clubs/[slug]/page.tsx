@@ -60,7 +60,7 @@ export default function ClubPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [joined, setJoined] = useState(false);
   const [loading, setLoading] = useState(true);
-
+const {update} = useSession()
   useEffect(() => {
     async function fetchData() {
       try {
@@ -71,9 +71,9 @@ export default function ClubPage() {
         setUpcoming(data.upcomingEvents);
         setPast(data.pastEvents);
         setMembers(data.members);
-        // if (session) {
-        //   setJoined(data.isMember);
-        // }
+        if (session) {
+          setJoined(data.isMember);
+        }
       } catch {
         toast.error("Failed to load club data");
       } finally {
@@ -97,19 +97,26 @@ export default function ClubPage() {
           description: "You are already a member of this club.",
           duration: 2000,
         });
+        // Removed invalid reference to update?.user?.clubRole
         setJoined(true);
         return;
       }
 
       if (!res.ok) throw new Error(json.message);
 
-      toast.success('Success',{description:json.message,duration:2000});
+      toast.success("Success", { description: json.message, duration: 2000 });
       setJoined(true);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        toast.error("Error", { description: err.message || "Join failed" ,duration:2000});
+        toast.error("Error", {
+          description: err.message || "Join failed",
+          duration: 2000,
+        });
       } else {
-        toast.error("Error", { description: "An unknown error occurred" ,duration:2000});
+        toast.error("Error", {
+          description: "An unknown error occurred",
+          duration: 2000,
+        });
       }
     }
   };
@@ -176,17 +183,19 @@ export default function ClubPage() {
         <div>Total Members: {members.length}</div>
       </div>
       <div className="flex items-center space-x-4">
-        <Button
-          onClick={handleJoin}
-          disabled={joined}
-          className={`py-2 px-4 rounded ${
-            joined
-              ? "bg-gray-400 text-white cursor-not-allowed"
-              : "bg-blue-500 text-white hover:bg-blue-600"
-          }`}
-        >
-          {joined ? "Member" : "Join"}
-        </Button>
+        {session && session.user && session.user.role !== "admin" && (
+          <Button
+            onClick={handleJoin}
+            disabled={joined}
+            className={`py-2 px-4 rounded ${
+              joined
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+          >
+            {joined ? "Member" : "Join"}
+          </Button>
+        )}
         <Button
           onClick={() => router.push(`/events/create`)}
           className="bg-green-500 text-white hover:bg-green-600"
