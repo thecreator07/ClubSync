@@ -51,7 +51,7 @@ export const authOptions: NextAuthOptions = {
                     .limit(1);
 
                 let clubRole = clubmemberresult?.role || "";
-                let clubId = clubmemberresult?.clubId || "";
+                const clubId = clubmemberresult?.clubId || "";
                 // If the user is not a member of any club, assign a default role (e.g., "guest" or "non-member")
                 if (!clubmemberresult) {
                     clubRole = "non-member";  // Default role for non-members

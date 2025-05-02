@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/option";
-import { clubs, members, } from "@/db/schema";
+import { clubs, } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ success: false, message: "Not authenticated" }, { status: 401 });
   }
-  const userId = Number(session.user.id);
+  // const userId = Number(session.user.id);
   console.log(session.user)
   try {
     const {

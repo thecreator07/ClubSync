@@ -26,7 +26,9 @@ export async function middleware(request: NextRequest) {
   }
 
   if (token && path.startsWith('/events/create')) {
-    if (token.clubRole !== 'president') {
+    if (['president', 'secretary', 'treasurer'].includes(token?.clubRole || '')) {
+      return NextResponse.next()
+    } else {
       return NextResponse.redirect(new URL('/error', request.url))
     }
   }
@@ -50,7 +52,7 @@ export async function middleware(request: NextRequest) {
     // }
 
     // presidents get full /clubs, members get /events
-    if (path.startsWith('/clubs') && ["president", "secretary", "treasurer"].includes(token?.clubRole ?? '') ) {
+    if (path.startsWith('/clubs') && ["president", "secretary", "treasurer"].includes(token?.clubRole ?? '')) {
       return NextResponse.next()
     }
 
@@ -64,7 +66,7 @@ export async function middleware(request: NextRequest) {
   if (token && path.startsWith('/users')) {
     const userId = token.id.toString()
     const userPath = path.split('/')[2]
-    console.log("userPath",userPath)
+    console.log("userPath", userPath)
     if (userId === userPath) {
       return NextResponse.next()
     } else {
