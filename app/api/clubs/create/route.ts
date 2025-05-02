@@ -6,15 +6,6 @@ import { clubs, members, } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 
-export async function GET() {
-  try {
-    const allClubs = await db.select().from(clubs);
-    return NextResponse.json({ success: true, data: allClubs });
-  } catch (err) {
-    console.error("GET /api/clubs error:", err);
-    return NextResponse.json({ success: false, message: "Failed to fetch clubs" }, { status: 500 });
-  }
-}
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);

@@ -19,24 +19,38 @@ export async function middleware(request: NextRequest) {
     )
   ) {
     return NextResponse.redirect(new URL('/', request.url));
-  } 
+  }
 
-  // If user is not authenticated, restrict access to clubs and events pages
   if (!token && (path.startsWith('/clubs') || path.startsWith('/events'))) {
     return NextResponse.redirect(new URL('/sign-in', request.url))
   }
 
+  if (token && path.startsWith('/events/create')) {
+    if (token.clubRole !== 'president') {
+      return NextResponse.redirect(new URL('/error', request.url))
+    }
+  }
+
+  if (token && path.startsWith('/clubs/create')) {
+    if (token.role !== 'admin') {
+      return NextResponse.redirect(new URL('/error', request.url))
+    }
+  }
+
+
+  // If user is not authenticated, restrict access to clubs and events pages
+
   // If user is authenticated, check their role and clubRole
   if (token && (path.startsWith('/clubs') || path.startsWith('/events'))) {
     // must be admin or a club member
-    if (token.role !== 'admin') {
-      if (!token.clubRole || token.clubRole === 'non-member') {
-        return NextResponse.redirect(new URL('/error', request.url))
-      }
-    }
+    // if (token.role !== 'admin') {
+    //   if (!token.clubRole || token.clubRole === 'non-member') {
+    //     return NextResponse.redirect(new URL('/error', request.url))
+    //   }
+    // }
 
     // presidents get full /clubs, members get /events
-    if (path.startsWith('/clubs') && token.clubRole === 'president') {
+    if (path.startsWith('/clubs') && ["president", "secretary", "treasurer"].includes(token?.clubRole ?? '') ) {
       return NextResponse.next()
     }
 
@@ -45,6 +59,18 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+
+  //if user is authenticated and trying to acces his profile page,allow access
+  if (token && path.startsWith('/users')) {
+    const userId = token.id.toString()
+    const userPath = path.split('/')[2]
+    console.log("userPath",userPath)
+    if (userId === userPath) {
+      return NextResponse.next()
+    } else {
+      return NextResponse.redirect(new URL('/error', request.url))
+    }
+  }
 
   // Default case: Allow request to proceed
   return NextResponse.next();

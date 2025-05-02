@@ -60,13 +60,14 @@ export default function ClubPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [joined, setJoined] = useState(false);
   const [loading, setLoading] = useState(true);
-const {update} = useSession()
+  // const {update} = useSession()
+  // console.log(session, "session in club page")
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await fetch(`/api/clubs/${slug}`);
         const data = await res.json();
-        console.log(data);
+        // console.log(data);
         setClub(data.club);
         setUpcoming(data.upcomingEvents);
         setPast(data.pastEvents);
@@ -94,11 +95,10 @@ const {update} = useSession()
       if (res.status === 409) {
         // toast.error(''"You are already a member of this club.");
         toast.error("Error", {
-          description: "You are already a member of this club.",
+          description: json.message,
           duration: 2000,
         });
-        // Removed invalid reference to update?.user?.clubRole
-        setJoined(true);
+        setJoined(false);
         return;
       }
 
@@ -196,12 +196,18 @@ const {update} = useSession()
             {joined ? "Member" : "Join"}
           </Button>
         )}
-        <Button
-          onClick={() => router.push(`/events/create`)}
-          className="bg-green-500 text-white hover:bg-green-600"
-        >
-          create event
-        </Button>
+        {/* {console.log(session?.user.clubRole, "session in club page")} */}
+        {["president", "secretary", "treasurer"].includes(
+          session?.user.clubRole
+        ) &&
+          session?.user.clubId === club.id && (
+            <Button
+              onClick={() => router.push(`/events/create`)}
+              className="bg-green-500 text-white hover:bg-green-600"
+            >
+              create event
+            </Button>
+          )}
       </div>
       {/* About Section */}
       <section className="prose">
@@ -217,7 +223,7 @@ const {update} = useSession()
               key={evt.id}
               className="mb-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200"
             >
-              <CardHeader>
+              <CardHeader onClick={() => router.push(`/events/${evt.id}`)}>
                 <CardTitle className="text-xl font-bold text-gray-800">
                   {evt.name}
                 </CardTitle>
@@ -260,7 +266,7 @@ const {update} = useSession()
                   key={evt.id}
                   className="min-w-[200px] bg-gray-700 p-4 rounded-lg"
                 >
-                  <CardHeader>
+                  <CardHeader onClick={() => router.push(`/events/${evt.id}`)}>
                     <CardTitle className="text-lg font-semibold">
                       {evt.name}
                     </CardTitle>

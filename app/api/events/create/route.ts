@@ -61,7 +61,7 @@ console.log(user)
 // console.log(object)
         if (!membership||user.clubRole!=='president') {
             return NextResponse.json(
-                { success: false, message: 'Only club admins can create events' },
+                { success: false, message: 'Only president can create events' },
                 { status: 403 }
             );
         }

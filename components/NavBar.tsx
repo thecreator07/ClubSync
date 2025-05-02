@@ -26,10 +26,10 @@ const Navbar = () => {
           <Link href="/" className="text-white">
             Home
           </Link>
-          <Link href="/clubs/clubsera" className="text-white">
+          <Link href="/clubs" className="text-white">
             Clubs
           </Link>
-          <Link href="/events/1" className="text-white">
+          <Link href="/events" className="text-white">
             Events
           </Link>
 

@@ -67,7 +67,7 @@ export async function GET(
       isMember = membersList.some(m => m.id === Number(user.id));
     }
 
-    console.log({ club, president, membersCount: membersList.length, upcomingEvents, pastEvents, isMember });
+    // console.log({ club, president, membersCount: membersList.length, upcomingEvents, pastEvents, isMember });
 
     return NextResponse.json(
       {
@@ -90,3 +90,6 @@ export async function GET(
     );
   }
 }
+
+
+

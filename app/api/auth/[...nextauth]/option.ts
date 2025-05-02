@@ -51,7 +51,7 @@ export const authOptions: NextAuthOptions = {
                     .limit(1);
 
                 let clubRole = clubmemberresult?.role || "";
-
+                let clubId = clubmemberresult?.clubId || "";
                 // If the user is not a member of any club, assign a default role (e.g., "guest" or "non-member")
                 if (!clubmemberresult) {
                     clubRole = "non-member";  // Default role for non-members
@@ -64,6 +64,7 @@ export const authOptions: NextAuthOptions = {
                     name: userResult.firstname,
                     role: userResult.role,
                     clubRole,
+                    clubId: Number(clubId),
                 };
             },
         }),
@@ -77,6 +78,7 @@ export const authOptions: NextAuthOptions = {
                 token.name = user.name;
                 token.role = user.role;
                 token.clubRole = user.clubRole;
+                token.clubId = user.clubId;
             }
             return token;
         },
@@ -88,6 +90,7 @@ export const authOptions: NextAuthOptions = {
                 session.user.name = token.name;
                 session.user.role = token.role;
                 session.user.clubRole = token.clubRole;
+                session.user.clubId = token.clubId;
             }
             return session;
         },

@@ -49,7 +49,7 @@ export default function SignInForm() {
     }
 console.log(result)
     if (result?.url) {
-      router.replace("/clubs");
+      router.replace("/");
     }
   };
 

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import * as z from "zod";
 
@@ -20,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { eventCreateSchema } from "@/schemas/eventCreateSchema";
+import { useSession } from "next-auth/react";
 
 type EventFormValues = z.infer<typeof eventCreateSchema>;
 
@@ -32,7 +32,7 @@ export default function CreateEventPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [clubs, setClubs] = useState<Club[]>([]);
-
+  // console.log(clubs, "session in create event page");
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventCreateSchema),
     defaultValues: {
@@ -47,23 +47,30 @@ export default function CreateEventPage() {
       registrationLink: "",
     },
   });
-
+  // session?.user;
   // Fetch clubs
   useEffect(() => {
-    const fetchClubs = async () => {
-      try {
-        const res = await fetch("/api/clubs/create", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        const { data } = await res.json();
-        setClubs(data);
-      } catch (error) {
-        console.error("Failed to fetch clubs", error);
-      }
-    };
-    fetchClubs();
-  }, []);
+    if (session) {
+      const fetchClubs = async () => {
+        try {
+          const res = await fetch("/api/clubs", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          });
+
+          const { data } = await res.json();
+
+          if (!res.ok) {
+            throw new Error("Failed to fetch clubs");
+          }
+          setClubs(data);
+        } catch (error) {
+          console.error("Failed to fetch clubs", error);
+        }
+      };
+      fetchClubs();
+    }
+  }, [session]);
 
   const onSubmit = async (data: EventFormValues) => {
     if (!session) {
@@ -83,7 +90,7 @@ export default function CreateEventPage() {
       if (!res.ok) {
         throw new Error(json.message || "Failed to create event");
       }
-console.log(json)
+      console.log(json);
       toast("Event created!", {
         description: `Event “${json.data.name}” created successfully!`,
         duration: 5000,
@@ -114,11 +121,13 @@ console.log(json)
                   className="w-full p-2 border rounded bg-background text-foreground"
                 >
                   <option value="">Select a Club</option>
-                  {clubs.map((club) => (
-                    <option key={club.id} value={club.id}>
-                      {club.name}
-                    </option>
-                  ))}
+                  {clubs
+                    .filter((club: Club) => club.id === Number(session?.user.clubId))
+                    .map((club) => (
+                      <option key={club.id} value={club.id}>
+                        {club.name}
+                      </option>
+                    ))}
                 </select>
                 <FormMessage />
               </FormItem>
@@ -128,13 +137,36 @@ console.log(json)
           {/* Other Fields */}
           {[
             { name: "name", label: "Event Name", component: Input },
-            { name: "description", label: "Event Description", component: Textarea },
-            { name: "eventDate", label: "Event Date", component: Input, type: "date" },
-            { name: "startTime", label: "Start Time", component: Input, type: "datetime-local" },
-            { name: "endTime", label: "End Time", component: Input, type: "datetime-local" },
+            {
+              name: "description",
+              label: "Event Description",
+              component: Textarea,
+            },
+            {
+              name: "eventDate",
+              label: "Event Date",
+              component: Input,
+              type: "date",
+            },
+            {
+              name: "startTime",
+              label: "Start Time",
+              component: Input,
+              type: "datetime-local",
+            },
+            {
+              name: "endTime",
+              label: "End Time",
+              component: Input,
+              type: "datetime-local",
+            },
             // { name: "eventImage", label: "Event Image URL", component: Input },
             { name: "location", label: "Location", component: Input },
-            { name: "registrationLink", label: "Registration Link", component: Input },
+            {
+              name: "registrationLink",
+              label: "Registration Link",
+              component: Input,
+            },
           ].map(({ name, label, component: Component, type }) => (
             <FormField
               key={name}
@@ -143,11 +175,7 @@ console.log(json)
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{label}</FormLabel>
-                  <Component
-                    {...field}
-                    type={type}
-                    placeholder={label}
-                  />
+                  <Component {...field} type={type} placeholder={label} />
                   <FormMessage />
                 </FormItem>
               )}

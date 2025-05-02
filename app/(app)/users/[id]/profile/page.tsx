@@ -22,6 +22,7 @@ const router = useRouter()
           if (data.success) {
             // setUserData(data.data);
             console.log("get data",data.data);
+            // console.log(session)
           } else {
             console.error("Failed to fetch user profile");
           }
