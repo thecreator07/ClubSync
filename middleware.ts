@@ -74,6 +74,28 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (token && path.startsWith('/clubs')) {
+    const uploadPath = path.split('/')[3]
+    if (uploadPath === 'upload') {
+      if (token.clubRole === 'president' || token.clubRole === 'secretary' || token.clubRole === 'treasurer' || token.role === 'admin') {
+        return NextResponse.next()
+      } else {
+        return NextResponse.redirect(new URL('/error', request.url))
+      }
+    }
+  }
+
+  if (token && path.startsWith('/events')) {
+    const uploadPath = path.split('/')[3]
+    if (uploadPath === 'upload') {
+      if (token.clubRole === 'president' || token.clubRole === 'secretary' || token.clubRole === 'treasurer' || token.role === 'admin') {
+        return NextResponse.next()
+      } else {
+        return NextResponse.redirect(new URL('/error', request.url))
+      }
+    }
+  }
+
   // Default case: Allow request to proceed
   return NextResponse.next();
 }

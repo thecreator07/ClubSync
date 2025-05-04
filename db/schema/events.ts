@@ -11,7 +11,7 @@ export const events = pgTable("events", {
   eventDate: date("event_date").notNull(),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time").notNull(),
-  eventImage: varchar("event_image", { length: 255 }), // For event banner
+  
   location: varchar("location", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow(),
   registrationLink: varchar("registration_link", { length: 255 }) // A link to register for the event

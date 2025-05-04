@@ -31,7 +31,7 @@ const uploadOnCloudinary = async (localfilePath: string) => {
 };
 
 // Delete avatar from Cloudinary
-const deleteFromCloudinary = async (oldAvatarUrl: string) => {
+const deleteFromCloudinary= async (oldAvatarUrl: string) => {
   try {
     if (!oldAvatarUrl) return null;
 
@@ -50,5 +50,4 @@ const deleteFromCloudinary = async (oldAvatarUrl: string) => {
     return null;
   }
 };
-
 export { uploadOnCloudinary, deleteFromCloudinary };

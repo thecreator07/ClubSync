@@ -10,7 +10,7 @@ export default function ClubsPage() {
 const router = useRouter();
   if (loading) return <p>Loading clubs...</p>;
   if (error) return <p className="text-red-500">Error: {error}</p>;
-
+// const format=keyof typeof clubs[0]
   return (
     <div className="max-w-xl mx-auto mt-10">
       <h1 className="text-2xl font-bold mb-4">Clubs</h1>
