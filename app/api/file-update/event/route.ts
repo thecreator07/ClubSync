@@ -2,7 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../../auth/[...nextauth]/option";
-import {  eventImages } from "@/db/schema/images";
+import { eventImages } from "@/db/schema/images";
 import { db } from "@/db";
 import { and, eq } from "drizzle-orm";
 
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest,) {
         const formData = await req.formData();
 
         const file = formData.get("file") as File | null;
-        const Id = formData .get("id") as string | null;
+        const Id = formData.get("id") as string | null;
         const ImageType = formData.get("imageType") as string | null;
         console.log(file, 'file')
         console.log(Id, 'id')
@@ -108,15 +108,7 @@ export async function POST(req: NextRequest,) {
             return NextResponse.json({ success: false, message: "Failed to upload image" }, { status: 500 });
         }
 
-
-        // 3. Insert image into club_images table
-        // const newclubImage = await db.insert(clubImages).values({
-        //     clubId: club.id,
-        //     public_id: result.public_id,
-        //     imageUrl: result.secure_url,
-        // }).returning()
-
-
+        // 3. Save image information to database
         const newEventImage = await db.insert(eventImages).values({
             eventId: Number(event.id),
             public_id: result.public_id,
@@ -163,7 +155,7 @@ export async function DELETE(req: NextRequest) {
         }
 
         // Delete image record from database  
-        // await db.delete(clubImages).where(eq(clubImages.public_id, public_id));
+
         await db.delete(eventImages).where(eq(eventImages.public_id, public_id));
         return NextResponse.json({ success: true, message: "Image deleted successfully" }, { status: 200 });
     } catch (error) {

@@ -1,5 +1,4 @@
 
-import { integer } from "drizzle-orm/pg-core";
 import { pgTable, serial, varchar, text, date } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 
@@ -11,9 +10,6 @@ export const clubs = pgTable("clubs", {
   about: text("about").notNull(),
   contactEmail: varchar("contact_email", { length: 100 }),
   contactPhone: varchar("contact_phone", { length: 20 }),
-  coverImage: varchar("cover_image_url", { length: 255 }), // big banner
-  logoImage: varchar("logo_image_url", { length: 255 }), // small logo
-  Verified: integer("verified").default(0),
   createdAt: date("created_at").defaultNow()
 });
 

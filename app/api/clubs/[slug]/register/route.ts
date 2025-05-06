@@ -84,6 +84,7 @@ export async function POST(
       { success: true, message: 'Successfully joined the club' },
       { status: 201 }
     );
+
   } catch (error) {
     console.error('Error joining club:', error);
     return NextResponse.json(

@@ -37,14 +37,37 @@ export default function EventPage() {
   // const router = useRouter();
   const { id } = useParams(); // Assuming slug is available via router query
   const [event, setEvent] = useState<Event | null>(null);
+  const [isRegistered, setRegistered] = useState(false);
+  const handleRegister = async () => {
+    try {
+      const res = await fetch(`/api/events/${id}/register`, {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Failed to register for event");
+        return;
+      }
+
+      toast.success("Successfully registered for the event");
+      setRegistered(true)
+    } catch (error) {
+      toast.error("An error occurred during registration");
+      console.error("Register error:", error);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
 
     const fetchEvent = async () => {
       try {
-        const res = await fetch(`/api/events/${id}`,{next:{revalidate:60,tags:[`events/${id}`]}});
-      const data = await res.json();
+        const res = await fetch(`/api/events/${id}`, {
+          next: { revalidate: 60, tags: [`events/${id}`] },
+        });
+        const data = await res.json();
 
         if (!res.ok) {
           toast.error(data.message || "Event not found");
@@ -52,6 +75,7 @@ export default function EventPage() {
         }
 
         setEvent(data.data);
+        setRegistered(data.data?.isRegistered)
       } catch (error) {
         toast.error("Failed to fetch event details");
         console.error(error);
@@ -228,14 +252,16 @@ export default function EventPage() {
           <p className="mb-4 text-gray-700 dark:text-gray-300">
             Don&apos;t miss your chance to be part of innovation!
           </p>
-          <Link href={event.registrationLink} passHref>
-            <Button
-              
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Register Now
-            </Button>
-          </Link>
+          {/* <Link href={event.registrationLink} passHref> */}
+          <Button
+            onClick={handleRegister}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >{
+            isRegistered?'registered':'Register Now'
+          }
+            
+          </Button>
+          {/* </Link> */}
         </div>
       </section>
 

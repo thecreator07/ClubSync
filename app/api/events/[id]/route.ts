@@ -24,7 +24,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const clubDetails = associatedClubs[0];
     const club = {
       name: clubDetails.name,
-      logoUrl: clubDetails.logoImage,
+      // logoUrl: clubDetails,
       description: clubDetails.description,
     };
     const eventWithClub = {

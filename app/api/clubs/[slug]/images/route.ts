@@ -13,6 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
         .select({
             imageUrl: clubImages.imageUrl,
             public_id: clubImages.public_id,
+            imageType: clubImages.imageType,
         })
         .from(clubImages)
         .innerJoin(clubs, eq(clubs.id, clubImages.clubId))

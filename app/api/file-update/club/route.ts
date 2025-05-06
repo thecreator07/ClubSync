@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../../auth/[...nextauth]/option";
 import { clubImages } from "@/db/schema/images";
 import { db } from "@/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 // Cloudinary configuration
 cloudinary.config({
@@ -40,13 +40,17 @@ export async function POST(req: NextRequest,) {
         const formData = await req.formData();
         const file = formData.get("file") as File | null;
         const slug = formData.get("slug") as string | null;
-
+        const ImageType = formData.get("imageType") as string | null;
         console.log(file, 'file')
         console.log(slug, 'slug')
+        console.log(ImageType, 'imageType')
         if (!file) {
             return NextResponse.json({ success: false, message: "No file provided" }, { status: 400 });
         }
-      
+        if (!slug) {
+            return NextResponse.json({ success: false, message: "No slug provided" }, { status: 400 });
+        }
+
         const club = await db.query.clubs.findFirst({
             where: (clubs, { eq }) => eq(clubs.slug, slug!)
         });
@@ -58,9 +62,20 @@ export async function POST(req: NextRequest,) {
 
 
         // 1. Check if the 5 images limit is reached
-        const clunImagesCount = await db.$count(clubImages, eq(clubImages.clubId, club.id))
-        if (clunImagesCount >= 5) {
-            return NextResponse.json({ success: false, message: "Image limit reached" }, { status: 400 });
+        const clubImagetypeCount = await db.$count(clubImages, and(eq(clubImages.clubId, club.id), eq(clubImages.imageType, ImageType!)));
+        if (!ImageType) {
+            return NextResponse.json({ success: false, message: "Image type is missing" }, { status: 400 });
+        }
+
+        if (ImageType === 'thumbnail' && clubImagetypeCount >= 1) {
+            return NextResponse.json({ success: false, message: `${ImageType} limit reached` }, { status: 400 });
+        }
+
+        if (ImageType === 'logo' && clubImagetypeCount >= 1) {
+            return NextResponse.json({ success: false, message: `${ImageType} limit reached` }, { status: 400 });
+        }
+        if (ImageType === 'hero' && clubImagetypeCount >= 5) {
+            return NextResponse.json({ success: false, message: `${ImageType} limit reached` }, { status: 400 });
         }
 
         const bytes = await file.arrayBuffer();
@@ -92,32 +107,11 @@ export async function POST(req: NextRequest,) {
 
         // 3. Insert image into club_images table
         const newclubImage = await db.insert(clubImages).values({
-            clubId: club.id as number, // Ensure club.id is explicitly cast to the expected type
-            public_id: result.public_id as string, // Ensure result.public_id is explicitly cast to string
-            imageUrl: result.secure_url as string, // Ensure result.secure_url is explicitly cast to string
+            clubId: club.id as number, 
+            public_id: result.public_id as string,
+            imageUrl: result.secure_url as string, 
+            imageType: ImageType, 
         }).returning();
-        // {
-        //     asset_id: '1c1ea1449b517dcff85fc06e25e46cf0',
-        //     public_id: 'club/1/ldtuw4oycuzaxliw4olf',
-        //     version: 1746297430,
-        //     version_id: '5c8c1e2a9793d42e9c4248035520c7a8',
-        //     signature: '974115f9e633bf90d73d5dd20fd154bb934e8558',
-        //     width: 1097,
-        //     height: 1226,
-        //     format: 'jpg',
-        //     resource_type: 'image',
-        //     created_at: '2025-05-03T18:37:10Z',
-        //     tags: [],
-        //     bytes: 145527,
-        //     type: 'upload',
-        //     etag: '10fcc05ef6f1b9b07192c585c8aedc8a',
-        //     placeholder: false,
-        //     url: 'http://res.cloudinary.com/dpu0tndxq/image/upload/v1746297430/club/1/ldtuw4oycuzaxliw4olf.jpg',
-        //     secure_url: 'https://res.cloudinary.com/dpu0tndxq/image/upload/v1746297430/club/1/ldtuw4oycuzaxliw4olf.jpg',
-        //     folder: 'club/1',
-        //     original_filename: 'file',
-        //     api_key: '729538155284454'
-        //   } result
 
         return NextResponse.json({ success: true, data: newclubImage[0], message: "Uploaded File Successfully", }, { status: 200 });
 

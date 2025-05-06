@@ -5,13 +5,14 @@ import { db } from '@/db';
 import { clubs, members, users, events } from '@/db/schema';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/option';
-import {  eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
+import { clubImages } from '@/db/schema/images';
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-    const { slug } = await params;
+  const { slug } = await params;
 
   try {
     // 1. Fetch club + members + users + events in 2-3 queries
@@ -30,7 +31,7 @@ export async function GET(
     const now = new Date();
 
     // Fetch members (with user data) and events (upcoming + past)
-    const [membersList, eventsList] = await Promise.all([
+    const [membersList, eventsList, imagesList] = await Promise.all([
       db
         .select({
           id: users.id,
@@ -48,9 +49,10 @@ export async function GET(
         .select()
         .from(events)
         .where(eq(events.clubId, clubId))
-        .orderBy(events.eventDate)
-    ]);
+        .orderBy(events.eventDate),
 
+      db.select().from(clubImages).where(eq(clubImages.clubId, clubId)),
+    ])
     // Split upcoming and past events
     const upcomingEvents = eventsList.filter(e => new Date(e.eventDate) >= now);
     const pastEvents = eventsList.filter(e => new Date(e.eventDate) < now);
@@ -58,6 +60,9 @@ export async function GET(
     // Find president
     const president = membersList.find(m => m.role === 'president');
 
+    //split images as hero, logo,thumbnail
+    const heroImages = imagesList.filter((image) => image.imageType === 'hero');
+    const logoImages = imagesList.filter((image) => image.imageType === 'logo');
     // 2. Check if user is a member
     const session = await getServerSession(authOptions);
     const user = session?.user;
@@ -67,7 +72,7 @@ export async function GET(
       isMember = membersList.some(m => m.id === Number(user.id));
     }
 
-    // console.log({ club, president, membersCount: membersList.length, upcomingEvents, pastEvents, isMember });
+    console.log({ club, president, membersCount: membersList.length, upcomingEvents, pastEvents, isMember,logoImages, heroImages });
 
     return NextResponse.json(
       {
@@ -78,6 +83,8 @@ export async function GET(
         upcomingEvents,
         pastEvents,
         members: membersList,
+        heroImages: heroImages,
+        logoImages: logoImages,
         isMember,
       },
       { status: 200 }

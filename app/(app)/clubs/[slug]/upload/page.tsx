@@ -19,12 +19,13 @@ import DeleteClubImageButton from "@/components/DeleteImageButton";
 interface ClubImage {
   public_id: string;
   imageUrl: string;
+  imageType: string;
 }
 
 const ImageFormats = {
-  "Square (1:1)": { width: 1080, height: 1080, aspectRatio: "1:1" },
-  "Portrait (4:5)": { width: 1080, height: 1350, aspectRatio: "4:5" },
-  "Hero (16:9)": { width: 1200, height: 675, aspectRatio: "16:9" },
+  logo: { width: 100, height: 100, aspectRatio: "1:1" },
+  hero: { width: 1200, height: 675, aspectRatio: "16:9" },
+  thumbnail: { width: 300, height: 300, aspectRatio: "1:1" },
 };
 
 type ImageFormat = keyof typeof ImageFormats;
@@ -33,7 +34,7 @@ export default function ClubGallery() {
   const [images, setImages] = useState<ClubImage[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [selectedFormat, setSelectedFormat] = useState<ImageFormat>("Hero (16:9)");
+  const [selectedFormat, setSelectedFormat] = useState<ImageFormat>("hero");
   const { slug } = useParams();
 
   const fetchImages = async () => {
@@ -58,7 +59,7 @@ export default function ClubGallery() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("slug", slug as string);
-
+      formData.append("imageType", selectedFormat);
       const response = await fetch("/api/file-update/club", {
         method: "POST",
         body: formData,
@@ -75,7 +76,8 @@ export default function ClubGallery() {
       setFile(null);
       fetchImages();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Something went wrong";
+      const errorMessage =
+        err instanceof Error ? err.message : "Something went wrong";
       toast.error("Unexpected error", {
         description: errorMessage,
       });
@@ -116,7 +118,6 @@ export default function ClubGallery() {
           disabled={uploading || !file}
           className="w-full md:w-auto"
         >
-        
           {uploading ? "Uploading..." : "Upload"}
         </Button>
       </div>
@@ -139,7 +140,14 @@ export default function ClubGallery() {
               className="w-full h-full object-cover"
             />
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
-              <DeleteClubImageButton publicId={img.public_id} onDelete={fetchImages} type="club"/>
+              <DeleteClubImageButton
+                publicId={img.public_id}
+                onDelete={fetchImages}
+                type="club"
+              />
+            </div>
+            <div className="absolute bottom-2 left-2 text-white text-xs bg-black/50 px-2 py-0.5 rounded">
+              {img.imageType}
             </div>
           </div>
         ))}

@@ -7,6 +7,7 @@ export const clubImages = pgTable("club_images", {//count only five images(hero)
   id: serial("id").primaryKey(),
   clubId: integer("club_id").references(() => clubs.id).notNull(),
   public_id: varchar("public_id", { length: 100 }).notNull(),
+  imageType: varchar("image_type", { length: 50 }).notNull(), // e.g., "thumbnail", "logo","hero"
   imageUrl: varchar("image_url", { length: 500 }).notNull(),
   updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()),
 });

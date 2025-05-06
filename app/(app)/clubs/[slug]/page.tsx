@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay } from "swiper/modules";
 import "swiper/css";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -28,9 +29,6 @@ interface Club {
   about: string;
   contactEmail?: string;
   contactPhone?: string;
-  coverImages: string[];
-  logoImage?: string;
-  verified: number;
 }
 
 interface Event {
@@ -50,6 +48,17 @@ interface Member {
   role: string;
 }
 
+interface images {
+  public_id: string;
+  imageUrl: string;
+  imageType: string;
+}
+
+interface logoImages {
+  public_id: string;
+  imageUrl: string;
+  imageType: string;
+}
 export default function ClubPage() {
   const { slug } = useParams();
   const router = useRouter();
@@ -58,6 +67,8 @@ export default function ClubPage() {
   const [upcoming, setUpcoming] = useState<Event[]>([]);
   const [past, setPast] = useState<Event[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [images, setImages] = useState<images[]>([]);
+  const [logo, setlogo] = useState<logoImages[]>([]);
   const [joined, setJoined] = useState(false);
   const [loading, setLoading] = useState(true);
   // const {update} = useSession()
@@ -72,6 +83,8 @@ export default function ClubPage() {
         setUpcoming(data.upcomingEvents);
         setPast(data.pastEvents);
         setMembers(data.members);
+        setImages(data.heroImages);
+        setlogo(data.logoImages);
         if (session) {
           setJoined(data.isMember);
         }
@@ -101,6 +114,7 @@ export default function ClubPage() {
         setJoined(false);
         return;
       }
+      
 
       if (!res.ok) throw new Error(json.message);
 
@@ -127,19 +141,21 @@ export default function ClubPage() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto p-4">
       {/* Banner Carousel */}
-      {club.coverImages?.length > 0 && (
+      {images.length > 0 && (
         <Swiper
+          modules={[Autoplay]}
           loop
-          autoplay={{ delay: 3000 }}
-          className="rounded-xl h-64 border-2 border-amber-50"
+          autoplay={{ delay: 2000 }}
+          className="rounded-xl border-2 border-amber-50"
         >
-          {club.coverImages.map((url, i) => (
+          {images.map((img, i) => (
             <SwiperSlide key={i}>
               <Image
-                width={80}
-                src={impic}
+                width={1024}
+                height={768}
+                src={img.imageUrl}
                 alt={`Cover ${i}`}
-                className="w-full h-64 object-cover"
+                className="w-full h-96 object-cover"
               />
             </SwiperSlide>
           ))}
