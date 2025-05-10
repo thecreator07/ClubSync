@@ -32,8 +32,6 @@ export default function CreateClubPage() {
       about: "",
       contactEmail: "",
       contactPhone: "",
-      coverImage: "",
-      logoImage: "",
     },
   });
 
@@ -78,8 +76,6 @@ export default function CreateClubPage() {
             { name: "about", label: "About the Club", component: Textarea },
             { name: "contactEmail", label: "Contact Email", component: Input },
             { name: "contactPhone", label: "Contact Phone", component: Input },
-            { name: "coverImage", label: "Cover Image URL", component: Input },
-            { name: "logoImage", label: "Logo Image URL", component: Input },
           ].map(({ name, label, component: Component }) => (
             <FormField
               key={name}

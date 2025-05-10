@@ -15,6 +15,10 @@ import {
   // CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { z } from "zod";
+import { eventUpdateSchema } from "@/db/schema";
+
+type EventProfileData=z.infer<typeof eventUpdateSchema>
 
 type Event = {
   id: number;

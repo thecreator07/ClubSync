@@ -7,16 +7,16 @@ import { useRouter } from "next/navigation";
 
 export default function EventsPage() {
   const { events, loading, error } = useEvents();
-  const {data: session} =useSession()
+  const { data: session } = useSession();
   const router = useRouter();
 
-  console.log(session, 'session in events page')
+  console.log(session, "session in events page");
   if (loading) return <p>Loading events...</p>;
   if (error) return <p className="text-red-500">Error: {error}</p>;
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Upcoming Events</h1>
+      <h1 className="text-3xl font-bold mb-6">Events</h1>
       <ul className="space-y-4">
         {events.map((event) => (
           <li
@@ -37,9 +37,14 @@ export default function EventsPage() {
               <strong>Location:</strong> {event.location}
             </p>
             <p>
-              <strong>Time:</strong>{" "}
-              {new Date(event.startTime).toLocaleTimeString()} -{" "}
-              {new Date(event.endTime).toLocaleTimeString()}
+              <strong>Time:</strong>
+              {event.startTime
+                ? new Date(event.startTime).toLocaleTimeString()
+                : "N/A"}{" "}
+              -
+              {event.endTime
+                ? new Date(event.endTime).toLocaleTimeString()
+                : "N/A"}
             </p>
             {event.registrationLink && (
               <a

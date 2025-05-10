@@ -1,17 +1,9 @@
 // hooks/useEvents.ts
+import { eventSelectSchema } from "@/db/schema";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 
-export type Event = {
-  id: number;
-  name: string;
-  description: string;
-  eventDate: string;
-  startTime: string;
-  endTime: string;
-  location: string;
-  registrationLink: string;
-  clubId: number;
-};
+type Event = z.infer<typeof eventSelectSchema>
 
 export function useEvents() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -26,7 +18,7 @@ export function useEvents() {
         if (!res.ok) throw new Error(json.message || "Failed to fetch events");
 
         setEvents(json.data);
-      } catch (err:unknown) {
+      } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
         setLoading(false);

@@ -29,7 +29,7 @@ export const users = pgTable('users', {
 
 export const userSelectSchema = createSelectSchema(users, {
   role: z.enum(['student', 'admin', 'user']),
-});
+}).omit({password:true})
 
 export const userInsertSchema = createInsertSchema(users, {
   role: z.enum(['student', 'admin', 'user']),
@@ -37,4 +37,5 @@ export const userInsertSchema = createInsertSchema(users, {
 
 export const userUpdateSchema = createUpdateSchema(users, {
   role: z.enum(['student', 'admin', 'user']),
-});
+  password: z.string().optional(),
+}).omit({ password: true });

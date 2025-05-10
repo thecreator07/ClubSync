@@ -8,7 +8,9 @@ import { eq } from "drizzle-orm"; // For query filtering
 import { userSelectSchema, userUpdateSchema } from "@/db/schema/users"; // Importing the Zod schemas for validation
 // import { z } from "zod";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/option";
+import { authOptions } from "@/app/api/auth/[...nextauth]/option";
+import { z } from "zod";
+import { clubs, eventRegistrations, events, members } from "@/db/schema";
 
 // Fetch user profile data based on dynamic userId
 export async function GET(req: NextRequest,
@@ -41,7 +43,8 @@ export async function GET(req: NextRequest,
             .from(users)
             .where(eq(users.id, Number(id)))
             .limit(1);
-
+        const clubsdata = await db.select({ clubId: clubs.id, clubrole: members.role, clubname: clubs.name, clubslug: clubs.slug }).from(members).innerJoin(clubs, eq(members.clubId, clubs.id)).where(eq(members.userId, user.id))
+        console.log(clubsdata, "useclubsjoined")
         if (!user) {
             return NextResponse.json(
                 { success: false, message: "User not found" },
@@ -49,10 +52,14 @@ export async function GET(req: NextRequest,
             );
         }
 
+        const eventsData = await db.select({ eventId: events.id, eventName: events.name, eventDate: events.eventDate }).from(eventRegistrations).innerJoin(events, eq(eventRegistrations.eventId, events.id)).where(eq(eventRegistrations.userId, Number(id)))
+        console.log(eventsData, "eventsData")
         // Validate the user data using Zod schema
         const parsedUserData = userSelectSchema.parse(user);
-
-        return NextResponse.json({ success: true, data: parsedUserData }, { status: 200 });
+        const alldata = {
+            parsedUserData, clubsdata, eventsData
+        }
+        return NextResponse.json({ success: true, data: alldata }, { status: 200 });
     } catch (err) {
         console.error("Error fetching profile:", err);
         return NextResponse.json(
@@ -86,13 +93,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         }
 
         // Parse the request body for updated user data (bio, clubs, etc.)
-        const { firstname, lastname, phone, department, year, semester } = await req.json();
+        const { firstname, lastname, phone, department, year, semester,aoi } = await req.json();
         console.log(firstname, lastname, phone, department, year, semester)
         // Validate the incoming data using Zod schema for updates
         const profileUpdateData = {
             firstname,
             lastname,
             phone,
+            aoi,
             department,
             year: Number(year),
             semester: Number(semester),

@@ -1,12 +1,9 @@
 // hooks/useClubs.ts
+import { clubSelectSchema } from "@/db/schema";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 
-export type Club = {
-  id: number;
-  name: string;
-  slug: string;
-  // add other fields as needed
-};
+export type Club = z.infer<typeof clubSelectSchema>
 
 export function useClubs() {
   const [clubs, setClubs] = useState<Club[]>([]);
@@ -21,7 +18,7 @@ export function useClubs() {
         if (!res.ok) throw new Error(json.message || "Failed to fetch clubs");
 
         setClubs(json.data);
-      } catch (err:unknown) {
+      } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
         setLoading(false);

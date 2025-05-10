@@ -5,7 +5,7 @@ import { createInsertSchema, createSelectSchema, createUpdateSchema } from "driz
 import { z } from "zod";
 
 // Create Postgres ENUM for membership role
-export const membershipRoleEnum = pgEnum('membership_role', ['member', 'president','secretary',"treasurer"]); 
+export const membershipRoleEnum = pgEnum('membership_role', ['member', 'president', 'secretary', "treasurer"]);
 
 export const eventRegistrations = pgTable('event_registrations', {
     id: serial('id').primaryKey(),
@@ -24,15 +24,15 @@ export const members = pgTable("memberships", {
 
 // Override role validation manually in Zod schemas:
 export const memberSelectSchema = createSelectSchema(members, {
-    role: z.enum(['member', 'president','vice-president']),
+    role: z.enum(['member', 'president', 'secretary', "treasurer"]),
 });
 
 export const memberInsertSchema = createInsertSchema(members, {
-    role: z.enum(['member', 'president','vice-president']),
+    role: z.enum(['member', 'president', 'secretary', "treasurer"]),
 });
 
 export const memberUpdateSchema = createUpdateSchema(members, {
-    role: z.enum(['member', 'president','vice-president']),
+    role: z.enum(['member', 'president', 'secretary', "treasurer"]),
 });
 
 

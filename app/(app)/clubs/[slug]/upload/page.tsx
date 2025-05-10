@@ -15,12 +15,10 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import DeleteClubImageButton from "@/components/DeleteImageButton";
+import { z } from "zod";
+import { clubImageInsertSchema } from "@/db/schema/images";
 
-interface ClubImage {
-  public_id: string;
-  imageUrl: string;
-  imageType: string;
-}
+type ClubImage = z.infer<typeof clubImageInsertSchema>;
 
 const ImageFormats = {
   logo: { width: 100, height: 100, aspectRatio: "1:1" },

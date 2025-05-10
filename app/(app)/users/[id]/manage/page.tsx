@@ -30,6 +30,7 @@ export default function ManageProfilePage() {
       firstname: "",
       lastname: "",
       phone: "",
+      aoi: "",
       department: "",
       year: "",
       semester: "",
@@ -41,13 +42,13 @@ export default function ManageProfilePage() {
       if (!session?.user?.id) {
         throw new Error("You must be logged in to update profile.");
       }
-console.log(session?.user?.id)
+      console.log(session?.user?.id);
       const res = await fetch(`/api/users/${session?.user?.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      console.log(data)
+      console.log(data);
       const json = await res.json();
       console.log(json);
       if (!res.ok) {
@@ -58,7 +59,7 @@ console.log(session?.user?.id)
         description: `Your profile was updated successfully.`,
         duration: 5000,
       });
-      router.push(`/users/${session?.user?.id}/profile`); 
+      router.push(`/users/${session?.user?.id}/profile`);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unexpected error occurred";
@@ -78,6 +79,7 @@ console.log(session?.user?.id)
             { name: "department", label: "Department", component: Input },
             { name: "year", label: "Year", component: Input },
             { name: "semester", label: "Semester", component: Input },
+            { name: "aoi", label: "area of interest", component: Input },
           ].map(({ name, label, component: Component }) => (
             <FormField
               key={name}
@@ -92,7 +94,7 @@ console.log(session?.user?.id)
               )}
             />
           ))}
-
+         
           <Button
             type="submit"
             className="w-full"

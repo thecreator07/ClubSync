@@ -9,7 +9,7 @@ import "swiper/css";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import impic from "../../../../static/image.png";
 import {
   Card,
@@ -20,37 +20,21 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { CldImage } from "next-cloudinary";
+import { z } from "zod";
+// import { clubImageSelectSchema } from "@/db/schema/images";
+import { clubSelectSchema, eventSelectSchema } from "@/db/schema";
+import { membersListSchema } from "@/app/api/clubs/[slug]/route";
 
-interface Club {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  about: string;
-  contactEmail?: string;
-  contactPhone?: string;
-}
+type Club = z.infer<typeof clubSelectSchema>;
 
-interface Event {
-  id: number;
-  name: string;
-  startDate: string;
-  description: string;
-  eventDate: string;
-}
+type Event = z.infer<typeof eventSelectSchema>;
 
-interface Member {
-  id: number;
-  email: string;
-  profilePic?: string;
-  firstname: string | undefined;
-  lastname: string | undefined;
-  role: string;
-}
+type Member = z.infer<typeof membersListSchema>;
 
 interface images {
   public_id: string;
-  imageUrl: string;
+  imageUrl: string | StaticImageData;
   imageType: string;
 }
 
@@ -66,9 +50,9 @@ export default function ClubPage() {
   const [club, setClub] = useState<Club | null>(null);
   const [upcoming, setUpcoming] = useState<Event[]>([]);
   const [past, setPast] = useState<Event[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<Member>([]);
   const [images, setImages] = useState<images[]>([]);
-  const [logo, setlogo] = useState<logoImages[]>([]);
+  const [logo, setlogo] = useState<logoImages | null>(null);
   const [joined, setJoined] = useState(false);
   const [loading, setLoading] = useState(true);
   // const {update} = useSession()
@@ -79,7 +63,7 @@ export default function ClubPage() {
         const res = await fetch(`/api/clubs/${slug}`);
         const data = await res.json();
         // console.log(data);
-        setClub(data.club);
+        setClub(data.parsedclubData);
         setUpcoming(data.upcomingEvents);
         setPast(data.pastEvents);
         setMembers(data.members);
@@ -114,7 +98,6 @@ export default function ClubPage() {
         setJoined(false);
         return;
       }
-      
 
       if (!res.ok) throw new Error(json.message);
 
@@ -164,13 +147,15 @@ export default function ClubPage() {
       {/* Club Header */}
       <Card className="w-full max-w-5xl border border-amber-800 shadow-md rounded-lg p-4">
         <CardHeader className="flex  space-x-4">
-          <Image
-            src={impic}
-            alt="Logo"
-            width={80}
-            height={80}
-            className="rounded-full border"
-          />
+          {logo && logo.public_id && (
+            <CldImage
+              width={96}
+              height={96}
+              src={logo?.public_id}
+              alt={logo?.imageType || "Club logo"}
+              className="rounded-full"
+            />
+          )}
           <div>
             <CardTitle className="text-2xl font-bold">{club.name}</CardTitle>
             <CardDescription className="text-gray-600">
@@ -182,20 +167,20 @@ export default function ClubPage() {
       </Card>
       {/* President & Stats */}
       <div className="flex items-center space-x-6">
-        {members.find((m) => m.role === "president") && (
+        {/* {members.find((m) => === "president") && (
           <div className="flex items-center space-x-2">
-            {/* <img
+            <img
               src={members.find(m => m.role === 'president')?.user.profilePic || ''}
               alt="President"
               className="w-12 h-12 rounded-full"
-            /> */}
-            {/* <span>
+            />
+            <span>
               President:{" "}
-              {members.find((m) => m.role === "president")?.user.firstname}{" "}
+              {members.find((m) => m.role === "president")?.user.firstname}
               {members.find((m) => m.role === "president")?.user.lastname}
-            </span> */}
+            </span>
           </div>
-        )}
+        )} */}
         <div>Total Members: {members.length}</div>
       </div>
       <div className="flex items-center space-x-4">
@@ -301,26 +286,41 @@ export default function ClubPage() {
           <p>No past events.</p>
         )}
       </section>
-      {/* Members Grid */}
       <section>
         <h2 className="text-2xl font-semibold mb-4">Members</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {members.map((m) => (
-            <Card key={m.id} className="flex flex-col items-center p-4">
+            <Card
+              key={m.id}
+              className="flex flex-col items-center p-4 
+                       hover:shadow-lg transition-shadow rounded-2xl 
+                       h-[220px] justify-between"
+            >
               <CardHeader className="flex flex-col items-center">
-                <Image
-                  width={64}
-                  height={64}
-                  src={impic}
-                  alt={`${m.firstname} ${m.lastname}`}
-                  className="w-16 h-16 rounded-full object-cover"
-                />
-                <CardTitle className="mt-2 text-center">
-                  {m.firstname}
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200">
+                  {m.avatar ? (
+                    <CldImage
+                      width={64}
+                      height={64}
+                      src={m.avatar}
+                      alt={`${m.firstname} ${m.lastname}`}
+                      crop="fill"
+                      gravity="auto"
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                      {/* Placeholder icon/text */}
+                      <span className="text-xl">👤</span>
+                    </div>
+                  )}
+                </div>
+                <CardTitle className="mt-3 text-center line-clamp-1">
+                  {m.firstname} {m.lastname}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-xs text-gray-500 capitalize text-center">
+              <CardContent className="pt-0">
+                <p className="text-sm text-gray-500 capitalize text-center line-clamp-1">
                   {m.role}
                 </p>
               </CardContent>

@@ -22,8 +22,7 @@ export async function POST(req: NextRequest) {
       about,
       contactEmail,
       contactPhone,
-      coverImage,
-      logoImage
+      
     } = await req.json();
 
     // Validate required fields
@@ -48,7 +47,7 @@ export async function POST(req: NextRequest) {
     // Create club
     const [newClub] = await db
       .insert(clubs)
-      .values({ name, slug, description, about, contactEmail, contactPhone, coverImage, logoImage })
+      .values({ name, slug, description, about, contactEmail, contactPhone })
       .returning();
 
     // Make creator the president

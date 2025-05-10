@@ -7,8 +7,9 @@ import { eq, and } from 'drizzle-orm';
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params
     const session = await getServerSession(authOptions);
     const user = session?.user;
 
@@ -20,9 +21,9 @@ export async function POST(
     }
 
     const userId = Number(user.id);
-    const id = Number(params.id);
+    const Id = Number(id);
 
-    if (isNaN(id)) {
+    if (isNaN(Id)) {
         return NextResponse.json(
             { success: false, message: 'Invalid event ID' },
             { status: 400 }
@@ -37,7 +38,7 @@ export async function POST(
             .where(
                 and(
                     eq(eventRegistrations.userId, userId),
-                    eq(eventRegistrations.eventId, id)
+                    eq(eventRegistrations.eventId, Id)
                 )
             )
             .limit(1);
@@ -52,7 +53,7 @@ export async function POST(
         // Insert new registration
         await db.insert(eventRegistrations).values({
             userId,
-            eventId: id,
+            eventId: Id,
         });
 
         return NextResponse.json(

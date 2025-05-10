@@ -15,7 +15,7 @@ const router = useRouter();
     <div className="max-w-xl mx-auto mt-10">
       <h1 className="text-2xl font-bold mb-4">Clubs</h1>
       <ul className="space-y-2">
-        {clubs.map((club) => (
+        {clubs?.map((club) => (
           <li onClick={()=> router.push(`/clubs/${club.slug}`)}
             key={club.id}
             className="p-4 border rounded-md bg-white dark:bg-gray-800 shadow"

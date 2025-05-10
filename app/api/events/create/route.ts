@@ -4,23 +4,14 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import { db } from '@/db';
 import { eventInsertSchema, events, members } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { TypeOf, z } from 'zod';
 
-interface EventRequestBody {
-    clubId: string;
-    name: string;
-    description: string;
-    eventDate: string | Date;
-    startTime: string | Date;
-    endTime: string | Date;
-    eventImage: string;
-    location: string;
-    registrationLink: string;
-}
+type EventRequestBody = z.infer<typeof eventInsertSchema>
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     const user = session?.user;
-console.log(user)
+    console.log(user)
     if (!session || !user) {
         return NextResponse.json(
             { success: false, message: 'Not authenticated' },
@@ -58,8 +49,8 @@ console.log(user)
                 )
             )
             .limit(1);
-// console.log(object)
-        if (!membership||user.clubRole!=='president') {
+        // console.log(object)
+        if (!membership || user.clubRole !== 'president') {
             return NextResponse.json(
                 { success: false, message: 'Only president can create events' },
                 { status: 403 }
@@ -71,10 +62,10 @@ console.log(user)
             clubId: clubIdNum,
             name,
             description,
-            eventDate: typeof eventDate === 'string' ? eventDate : eventDate?.toISOString(),
+            eventDate: typeof eventDate === 'string' ? eventDate : eventDate,
             startTime: typeof startTime === 'string' ? new Date(startTime) : startTime,
             endTime: typeof endTime === 'string' ? new Date(endTime) : endTime,
-          
+
             location,
             registrationLink
         };

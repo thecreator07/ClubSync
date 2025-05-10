@@ -16,6 +16,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       .execute();
     // console.log(event)
     const associatedClubs = await db.select().from(clubs).where(eq(clubs.id, event[0].clubId)).execute();
+    
     if (!event.length) {
       return NextResponse.json({ succes: false, message: "Event not found" }, { status: 404 });
     }

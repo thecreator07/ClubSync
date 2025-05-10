@@ -30,5 +30,6 @@ export const userUpdateSchema = z.object({
       z.literal("8"),
     ])
     .or(z.string().regex(/^[1-8]$/, "Semester must be between 1 and 8")),
-//   avatar: z.string().url("Must be a valid URL").optional(),
+  aoi: z.string()
+  //   avatar: z.string().url("Must be a valid URL").optional(),
 });
