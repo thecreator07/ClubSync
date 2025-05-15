@@ -80,7 +80,7 @@ export async function GET(
         .select({
           id: events.id,
           name: events.name,
-          description: events.description,
+          description: events.description,  
           eventDate: events.eventDate,
           location: events.location
         })

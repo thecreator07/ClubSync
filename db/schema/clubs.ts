@@ -1,6 +1,11 @@
 
 import { pgTable, serial, varchar, text, date } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
+import { members } from "./participation";
+import { relations } from "drizzle-orm";
+import { events } from "./events";
+import { clubImages } from "./images";
+import { z } from "zod";
 
 export const clubs = pgTable("clubs", {
   id: serial("id").primaryKey(),
@@ -17,3 +22,13 @@ export const clubs = pgTable("clubs", {
 export const clubSelectSchema = createSelectSchema(clubs, {})
 export const clubInsertSchema = createInsertSchema(clubs, {})
 export const clubUpdateSchema = createUpdateSchema(clubs, {})
+
+
+export const clubsRelations = relations(clubs, ({ many, one }) => ({
+  members: many(members),
+  eventsOrganized: many(events),
+  clubImages: many(clubImages),
+}));
+
+export type Club = z.infer<typeof clubSelectSchema>;
+export const clubsArraySchema=z.array(clubSelectSchema)

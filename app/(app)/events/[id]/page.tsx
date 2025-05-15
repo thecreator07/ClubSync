@@ -16,32 +16,60 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
-import { eventUpdateSchema } from "@/db/schema";
+import {
+  clubSelectSchema,
+  clubUpdateSchema,
+  eventRegistrationSelectSchema,
+  eventSelectSchema,
+  eventUpdateSchema,
+  userSelectSchema,
+} from "@/db/schema";
+import { eventImageSelectSchema } from "@/db/schema/images";
+import { AnimatedTooltipPreview, Item } from "@/components/Tooltip";
+import { useSession } from "next-auth/react";
 
-type EventProfileData=z.infer<typeof eventUpdateSchema>
-
-type Event = {
-  id: number;
-  name: string;
-  description: string;
-  eventDate: string;
-  startTime: string;
-  endTime: string;
-  eventImage: string;
-  location: string;
-  registrationLink: string;
-  club: {
-    name: string;
-    logoUrl: string;
-    description: string;
-  };
-};
+type EventProfileData = z.infer<typeof eventSelectSchema>;
+type AssociatedClub = z.infer<typeof clubSelectSchema>;
+type Imagegallery = z.infer<typeof eventImageSelectSchema>;
+const eventregisteredUser = eventRegistrationSelectSchema.extend({
+  user: userSelectSchema,
+});
+type registerdUser = z.infer<typeof eventregisteredUser>;
+// type Event = {
+//   id: number;
+//   name: string;
+//   description: string;
+//   eventDate: string;
+//   startTime: string;
+//   endTime: string;
+//   eventImage: string;
+//   location: string;
+//   registrationLink: string;
+//   club: {
+//     name: string;
+//     logoUrl: string;
+//     description: string;
+//   };
+// };
 
 export default function EventPage() {
+  const { data: session } = useSession();
   // const router = useRouter();
   const { id } = useParams(); // Assuming slug is available via router query
-  const [event, setEvent] = useState<Event | null>(null);
-  const [isRegistered, setRegistered] = useState(false);
+  const [event, setEvent] = useState<EventProfileData | null>(null);
+  const [RegisteredUser, setRegisteredUser] = useState<registerdUser[] | null>(
+    null
+  );
+  const [IsRegistered, setIsRegistered] = useState<boolean>(false);
+  const [AssociatedClub, setAssosciatedClub] = useState<AssociatedClub | null>(
+    null
+  );
+  const [tooltip, settooltip] = useState<Item[] | null>(null);
+  const [ImageList, setImageList] = useState<Imagegallery[] | null>(null);
+
+  // console.log(tooltip);
+  // console.log(session?.user.id);
+
   const handleRegister = async () => {
     try {
       const res = await fetch(`/api/events/${id}/register`, {
@@ -56,7 +84,7 @@ export default function EventPage() {
       }
 
       toast.success("Successfully registered for the event");
-      setRegistered(true)
+      setIsRegistered(true);
     } catch (error) {
       toast.error("An error occurred during registration");
       console.error("Register error:", error);
@@ -72,14 +100,29 @@ export default function EventPage() {
           next: { revalidate: 60, tags: [`events/${id}`] },
         });
         const data = await res.json();
-
+        console.log(data);
         if (!res.ok) {
           toast.error(data.message || "Event not found");
           return;
         }
 
-        setEvent(data.data);
-        setRegistered(data.data?.isRegistered)
+        setEvent(data?.event);
+        setAssosciatedClub(data?.eventAssociatedClub[0]);
+        setImageList(data?.eventsImageList);
+        setRegisteredUser(data?.eventRegisterList);
+        const tooltipData: Item[] =
+          data?.eventRegisterList?.map((reg: registerdUser) => ({
+            id: reg.user.id,
+            name: reg.user.firstname || "N/A",
+            image: reg.user.avatar,
+          })) || [];
+        settooltip(tooltipData);
+        if (tooltip) {
+          const registered = tooltip?.every(
+            (arg) => arg.id === session?.user.id
+          );
+          setIsRegistered(registered);
+        }
       } catch (error) {
         toast.error("Failed to fetch event details");
         console.error(error);
@@ -131,11 +174,20 @@ export default function EventPage() {
             <div className="flex flex-wrap gap-4">
               <p>{new Date(event.eventDate).toLocaleDateString()}</p>
               <p>
-                {`${new Date(
-                  event.startTime
-                ).toLocaleTimeString()} - ${new Date(
-                  event.endTime
-                ).toLocaleTimeString()}`}
+                {event.startTime
+                  ? `${new Date(event.startTime).toLocaleTimeString(undefined, {
+                      hour: "numeric",
+                      minute: "numeric",
+                    })}`
+                  : "N/A"}
+                {" - "}
+                {event.endTime
+                  ? new Date(event.endTime).toLocaleTimeString(undefined, {
+                    day:"2-digit",  
+                    hour: "numeric",
+                      minute: "numeric",
+                    })
+                  : "N/A"}
               </p>
               <p>{event.location}</p>
               {event.registrationLink && (
@@ -145,7 +197,7 @@ export default function EventPage() {
                     target="_blank"
                     className="text-blue-500 hover:underline"
                   >
-                    Register Now
+                    Registration
                   </Link>
                 </p>
               )}
@@ -181,10 +233,10 @@ export default function EventPage() {
               className="w-16 h-16 object-cover rounded-full"
             />
             <div>
-              <h3 className="text-xl font-semibold">{event.club.name}</h3>
-              <p>{event.club.description}</p>
+              <h3 className="text-xl font-semibold">{AssociatedClub?.name}</h3>
+              <p>{AssociatedClub?.description}</p>
               <Link
-                href={`/clubs/${event.club.name}`}
+                href={`/clubs/${AssociatedClub?.name}`}
                 className="text-blue-500"
               >
                 View Club Page
@@ -203,11 +255,15 @@ export default function EventPage() {
           <CardContent>
             <div className="flex space-x-4 overflow-x-auto">
               {/* Placeholder for gallery images */}
-              <Image
-                src={imagepic}
-                alt="Event Image"
-                className="w-64 h-40 object-cover rounded-md"
-              />
+              {ImageList&& ImageList[0] && (
+                <Image
+                  src={ImageList[0]?.imageUrl}
+                  width={96}
+                  height={96}
+                  alt="Event Image"
+                  className="w-64 h-40 object-cover rounded-md"
+                />
+              )}
               {/* More images can be added here */}
             </div>
           </CardContent>
@@ -215,14 +271,9 @@ export default function EventPage() {
       </section>
 
       <section className="mt-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto ">
           <h2 className="text-2xl  font-bold">Participants</h2>
-          <div className="flex items-center space-x-2">
-            <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-            <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-
-            <span>+50 more</span>
-          </div>
+          <AnimatedTooltipPreview items={tooltip || []} />
         </div>
       </section>
 
@@ -230,7 +281,7 @@ export default function EventPage() {
       <section className="mt-8">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold">
-            Past Events by {event.club.name}
+            Past Events by {AssociatedClub?.name}
           </h2>
           <div className="flex space-x-4 overflow-x-auto py-4">
             <div className="w-60 bg-gray-600 p-4 rounded-md">
@@ -260,10 +311,8 @@ export default function EventPage() {
           <Button
             onClick={handleRegister}
             className="bg-blue-600 hover:bg-blue-700 text-white"
-          >{
-            isRegistered?'registered':'Register Now'
-          }
-            
+          >
+            {IsRegistered ? "registered" : "Register Now"}
           </Button>
           {/* </Link> */}
         </div>

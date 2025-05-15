@@ -1,38 +1,76 @@
 import { NextResponse } from "next/server";
-// import { events } from "../../../db/schema"; // Assuming you have your schema here
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { clubs, events } from "@/db/schema";
+import { clubs, clubSelectSchema, eventRegistrations, events, eventSelectSchema } from "@/db/schema";
+import { eventImages } from "@/db/schema/images";
+import { z } from "zod";
 
+export type CLubData = z.infer<typeof clubSelectSchema>
+export type EventData = z.infer<typeof eventSelectSchema>
 // This route fetches an event by slug
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   try {
-    const event = await db
-      .select().from(events)
-      .where(eq(events.id, Number(id))) // Fetch event by id (converted to number)
-      .limit(1)
-      .execute();
-    // console.log(event)
-    const associatedClubs = await db.select().from(clubs).where(eq(clubs.id, event[0].clubId)).execute();
-    
-    if (!event.length) {
-      return NextResponse.json({ succes: false, message: "Event not found" }, { status: 404 });
+
+    const [event] = await db.select().from(events).where(eq(events.id, Number(id))).limit(1)
+    if (!event) {
+      return NextResponse.json({ success: false, message: "Event not found" }, { status: 400 })
     }
 
-    const eventDetails = event[0]; // Assuming event data is in the first index
-    const clubDetails = associatedClubs[0];
-    const club = {
-      name: clubDetails.name,
-      // logoUrl: clubDetails,
-      description: clubDetails.description,
-    };
-    const eventWithClub = {
-      ...eventDetails,
-      club,
-    };
-    return NextResponse.json({ success: true, data: eventWithClub }, { status: 200 });
+    const [eventAssociatedClub, eventsImageList, eventRegisterList] = await Promise.all([
+
+      db.select().from(clubs).where(eq(clubs.id, event.clubId)).limit(1),
+
+      db.select().from(eventImages).where(eq(eventImages.eventId, event.id)),
+
+      db.query.eventRegistrations.findMany({
+        where: eq(eventRegistrations.eventId, Number(id)),
+        with: {
+          user: {
+            columns: {
+              id: true,
+              firstname: true,
+              avatar: true
+            }
+          }
+        }
+      })
+
+    ])
+
+
+    // const eventDetails = await db.query.events.findFirst({
+    //   where: eq(events.id, Number(id)),
+    //   with: {
+    //     organizingClub: true,
+    //     registrations: {
+    //       with: {
+    //         user: { // Fetch the user details for each registration
+    //           columns: { // Specify which user columns to avoid over-fetching password etc.
+    //             id: true,
+    //             firstname: true,
+    //             email: true
+    //           }
+    //         }
+    //       }
+    //     },
+    //     eventImagesList: true
+    //   }
+    // });
+    console.log(event, eventAssociatedClub[0], eventsImageList, eventRegisterList)
+
+
+
+
+
+
+
+
+
+
+
+    return NextResponse.json({ success: true, event, eventAssociatedClub, eventsImageList, eventRegisterList }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ success: false, message: "Error fetching event" }, { status: 500 });

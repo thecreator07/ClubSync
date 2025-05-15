@@ -1,40 +1,32 @@
+// src/store/api.ts
+import { Club } from '@/db/schema';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { Club, Event } from '@/types';
+// import type { Club } from '@/types'; // define this interface in your types folder
 
 export const api = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api', credentials: 'include' }),
-  tagTypes: ['Club','Event'],
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  tagTypes: ['Club'],
   endpoints: (builder) => ({
+    // Fetch all clubs
     getClubs: builder.query<Club[], void>({
       query: () => 'clubs',
-      providesTags: (res = []) => [
-        ...res.map(c => ({ type: 'Club' as const, id: c.id })),
-        { type: 'Club' as const, id: 'LIST' }
-      ],
+      transformResponse: (response: { success: boolean; data: Club[] }) => response.data,
+      providesTags: (clubs) =>
+        clubs
+          ? [
+              ...clubs.map((c) => ({ type: 'Club' as const, id: c.id })),
+              { type: 'Club', id: 'LIST' },
+            ]
+          : [{ type: 'Club', id: 'LIST' }],
     }),
-    addClub: builder.mutation<Club, Partial<Club>>({
-      query: (body) => ({ url: 'clubs', method: 'POST', body }),
-      invalidatesTags: [{ type: 'Club', id: 'LIST' }],
-    }),
-    getEvents: builder.query<Event[], void>({
-      query: () => 'events',
-      providesTags: (res=[]) => [
-        ...res.map(e => ({ type: 'Event' as const, id: e.id })),
-        { type: 'Event', id: 'LIST' }
-      ],
-    }),
-    addEvent: builder.mutation<Event, Partial<Event>>({
-      query: (body) => ({ url: 'events', method: 'POST', body }),
-      invalidatesTags: [{ type: 'Event', id: 'LIST' }],
+    // Fetch a single club by slug
+    getClubBySlug: builder.query<Club, string>({
+      query: (slug) => `clubs/${slug}`,
+      transformResponse: (response: { success: boolean; data: any }) => response.data,
+      providesTags: (_result, _error, slug) => [{ type: 'Club', id: slug }],
     }),
   }),
-});-
+});
 
-
-export const {
-  useGetClubsQuery,
-  useAddClubMutation,
-  useGetEventsQuery,
-  useAddEventMutation,
-} = api;
+export const { useGetClubsQuery, useGetClubBySlugQuery } = api;

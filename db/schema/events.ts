@@ -2,6 +2,10 @@ import { pgTable, serial, varchar, text, date, integer, timestamp } from "drizzl
 import { clubs } from "./clubs";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
+import { eventRegistrations } from "./participation";
+import { eventImages } from "./images";
+// import { eventImages } from "./images";
 
 export const events = pgTable("events", {
   id: serial("id").primaryKey(),
@@ -21,3 +25,14 @@ export const events = pgTable("events", {
 export const eventSelectSchema = createSelectSchema(events, { clubId: z.number().optional(), startTime: z.date().optional(), endTime: z.date().optional(), registrationLink: z.string().url().optional(), createdAt: z.date().optional() })
 export const eventInsertSchema = createInsertSchema(events, { registrationLink: z.string().url().optional(), })
 export const eventUpdateSchema = createUpdateSchema(events, { registrationLink: z.string().url().optional(), })
+
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  organizingClub: one(clubs, { // An event is organized by one club
+    fields: [events.clubId],
+    references: [clubs.id],
+  }),
+  registrations: many(eventRegistrations), // An event can have many user registrations
+  eventImagesList: many(eventImages, {
+    relationName: "eventImagesList",
+  }) // An event can have many images
+}));

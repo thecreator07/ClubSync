@@ -4,6 +4,9 @@ import "./globals.css";
 import AuthProvider from "@/context/AuthProvider";
 import { ThemeProvider } from "@/context/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+
+import { Providers } from "@/context/ReduxProvider";
+// import { PersistGate } from "redux-persist/integration/react";
 // import Navbar from "@/components/NavBar";
 
 const geistSans = Geist({
@@ -31,13 +34,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider attribute="class" >
+        {/* <Provider store={store}> */}
+        {/* <PersistGate loading={null} persistor={persistor}> */}
+        <ThemeProvider attribute="class">
           <AuthProvider>
-           
-            {children}
+            <Providers>{children}</Providers>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>
+        {/* </PersistGate> */}
+        {/* </Provider> */}
       </body>
     </html>
   );

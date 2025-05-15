@@ -1,6 +1,11 @@
+import { relations } from 'drizzle-orm';
 import { pgTable, serial, varchar, integer, date, pgEnum } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from 'drizzle-zod';
 import { z } from 'zod';
+import { eventRegistrations, members } from './participation';
+import { clubs } from './clubs';
+import { events } from './events';
+import { clubImages, eventImages } from './images';
 
 // 1. Define a Postgres ENUM for role
 export const roleEnum = pgEnum('role', ['student', 'admin', 'user']);
@@ -39,3 +44,16 @@ export const userUpdateSchema = createUpdateSchema(users, {
   role: z.enum(['student', 'admin', 'user']),
   password: z.string().optional(),
 }).omit({ password: true });
+
+
+
+
+
+export const usersRelations = relations(users, ({ many }) => ({
+  memberships: many(members), // A user can have many memberships in different clubs
+  eventRegistrations: many(eventRegistrations), // A user can register for many events
+}));
+
+
+
+
