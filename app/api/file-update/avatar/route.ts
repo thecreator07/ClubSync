@@ -3,8 +3,9 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../../auth/[...nextauth]/option";
 import { db } from "@/db";
-import { users } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
+// import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { users } from "@/db/schema&relation";
 // Cloudinary configuration
 cloudinary.config({
     cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,

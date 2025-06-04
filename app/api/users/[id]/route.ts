@@ -9,8 +9,9 @@ import { userSelectSchema, userUpdateSchema } from "@/db/schema/users"; // Impor
 // import { z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/option";
-import { z } from "zod";
-import { clubs, eventRegistrations, events, members } from "@/db/schema";
+import { clubs, eventRegistrations, events, members } from "@/db/schema&relation";
+// import { z } from "zod";
+// import { clubs, eventRegistrations, events, members } from "@/db/schema";
 
 // Fetch user profile data based on dynamic userId
 export async function GET(req: NextRequest,

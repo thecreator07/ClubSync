@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import { db } from '@/db';
-import { eventRegistrations } from '@/db/schema';
+// import { eventRegistrations } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { eventRegistrations } from '@/db/schema&relation';
 
 export async function POST(
     req: NextRequest,

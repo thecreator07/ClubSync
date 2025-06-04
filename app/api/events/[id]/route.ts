@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { clubs, clubSelectSchema, eventRegistrations, events, eventSelectSchema } from "@/db/schema";
+// import { clubs, clubSelectSchema, eventRegistrations, events, eventSelectSchema } from "@/db/schema";
 import { eventImages } from "@/db/schema/images";
-import { z } from "zod";
+import { clubs,  eventRegistrations, events,  } from "@/db/schema&relation";
 
-export type CLubData = z.infer<typeof clubSelectSchema>
-export type EventData = z.infer<typeof eventSelectSchema>
-// This route fetches an event by slug
+
+// This route fetches an event by id
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -20,8 +19,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const [eventAssociatedClub, eventsImageList, eventRegisterList] = await Promise.all([
 
-      db.select().from(clubs).where(eq(clubs.id, event.clubId)).limit(1),
-
+      // db.select().from(clubs).where(eq(clubs.id, event.clubId)).limit(1),
+      db.query.clubs.findMany({
+        where: eq(clubs.id, Number(event.clubId)),
+        with: {
+          eventsOrganized: true
+        },
+      }),
       db.select().from(eventImages).where(eq(eventImages.eventId, event.id)),
 
       db.query.eventRegistrations.findMany({
@@ -58,7 +62,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     //     eventImagesList: true
     //   }
     // });
-    console.log(event, eventAssociatedClub[0], eventsImageList, eventRegisterList)
+    console.log(event, eventAssociatedClub, eventsImageList, eventRegisterList)
 
 
 

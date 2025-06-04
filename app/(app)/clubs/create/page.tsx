@@ -1,4 +1,3 @@
-// app/clubs/create/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -15,8 +14,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { clubRegisterSchema } from "@/schemas/clubRegistrationSchema";
+import { Loader2 } from "lucide-react";
 
 type ClubFormValues = z.infer<typeof clubRegisterSchema>;
 
@@ -37,69 +38,88 @@ export default function CreateClubPage() {
 
   const onSubmit = async (data: ClubFormValues) => {
     try {
-      const res = await fetch("/api/clubs/create", {
+      const res = await fetch("/api/clubs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       const json = await res.json();
-      console.log(json);
-      if (!res.ok) {
-        throw new Error(json.message || "Failed to create club");
-      }
+      if (!res.ok) throw new Error(json.message || "Failed to create club");
 
-      toast("Club created!", {
+      toast.success("Club created", {
         description: `“${json.data.name}” is now sent to HOD for verification.`,
-        duration: 5000,
       });
       router.push(`/clubs/${json.data.slug}`);
-    } catch (err: unknown) {
+    } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "An unexpected error occurred";
-      toast("Error", { description: errorMessage, duration: 5000 });
+      toast.error("Error creating club", { description: errorMessage });
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Create New Club</h1>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {[
-            { name: "name", label: "Club Name", component: Input },
-            { name: "slug", label: "URL Slug", component: Input },
-            {
-              name: "description",
-              label: "Short Description",
-              component: Textarea,
-            },
-            { name: "about", label: "About the Club", component: Textarea },
-            { name: "contactEmail", label: "Contact Email", component: Input },
-            { name: "contactPhone", label: "Contact Phone", component: Input },
-          ].map(({ name, label, component: Component }) => (
-            <FormField
-              key={name}
-              name={name as keyof ClubFormValues}
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{label}</FormLabel>
-                  <Component {...field} placeholder={label} />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
+    <div className="flex justify-center items-center min-h-screen bg-muted px-4">
+      <Card className="w-full max-w-2xl shadow-lg border-none">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold text-center">
+            Create a New Club
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {[
+                { name: "name", label: "Club Name", component: Input },
+                { name: "slug", label: "URL Slug", component: Input },
+                {
+                  name: "description",
+                  label: "Short Description",
+                  component: Textarea,
+                },
+                { name: "about", label: "About the Club", component: Textarea },
+                {
+                  name: "contactEmail",
+                  label: "Contact Email",
+                  component: Input,
+                },
+                {
+                  name: "contactPhone",
+                  label: "Contact Phone",
+                  component: Input,
+                },
+              ].map(({ name, label, component: Component }) => (
+                <FormField
+                  key={name}
+                  name={name as keyof ClubFormValues}
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{label}</FormLabel>
+                      <Component {...field} placeholder={`Enter ${label}`} />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting ? "Creating..." : "Create Club"}
-          </Button>
-        </form>
-      </Form>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Club"
+                )}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

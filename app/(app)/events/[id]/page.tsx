@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import Image from "next/image";
-import imagepic from "../../../../static/image.png";
+import imagepic from "../../../../public/image.jpg";
 import Link from "next/link";
 import {
   Card,
@@ -16,21 +16,37 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
-import {
-  clubSelectSchema,
-  clubUpdateSchema,
-  eventRegistrationSelectSchema,
-  eventSelectSchema,
-  eventUpdateSchema,
-  userSelectSchema,
-} from "@/db/schema";
+// import {
+//   clubSelectSchema,
+//   clubUpdateSchema,
+//   eventRegistrationSelectSchema,
+//   eventSelectSchema,
+//   eventUpdateSchema,
+//   userSelectSchema,
+// } from "@/db/schema";
 import { eventImageSelectSchema } from "@/db/schema/images";
 import { AnimatedTooltipPreview, Item } from "@/components/Tooltip";
 import { useSession } from "next-auth/react";
+import { useGetEventByIdQuery } from "@/services/api/events";
+import {
+  clubSelectSchema,
+  eventRegistrationSelectSchema,
+  eventSelectSchema,
+  userSelectSchema,
+} from "@/db/schema&relation";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import { Autoplay } from "swiper/modules";
 
 type EventProfileData = z.infer<typeof eventSelectSchema>;
-type AssociatedClub = z.infer<typeof clubSelectSchema>;
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const clubwitheventSelectSchema = clubSelectSchema.extend({
+  eventsOrganized: eventSelectSchema.array().optional(),
+});
+type AssociatedClub = z.infer<typeof clubwitheventSelectSchema>;
 type Imagegallery = z.infer<typeof eventImageSelectSchema>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const eventregisteredUser = eventRegistrationSelectSchema.extend({
   user: userSelectSchema,
 });
@@ -56,16 +72,19 @@ export default function EventPage() {
   const { data: session } = useSession();
   // const router = useRouter();
   const { id } = useParams(); // Assuming slug is available via router query
-  const [event, setEvent] = useState<EventProfileData | null>(null);
-  const [RegisteredUser, setRegisteredUser] = useState<registerdUser[] | null>(
-    null
+  const { data, isLoading, refetch, originalArgs } = useGetEventByIdQuery(
+    id as string
   );
+  const [event, setEvent] = useState<EventProfileData | null>(null);
+  // const [RegisteredUser, setRegisteredUser] = useState<registerdUser[] | null>(
+  //   null
+  // );
   const [IsRegistered, setIsRegistered] = useState<boolean>(false);
   const [AssociatedClub, setAssosciatedClub] = useState<AssociatedClub | null>(
     null
   );
   const [tooltip, settooltip] = useState<Item[] | null>(null);
-  const [ImageList, setImageList] = useState<Imagegallery[] | null>(null);
+  const [ImageList, setImageList] = useState<Imagegallery[]>([]);
 
   // console.log(tooltip);
   // console.log(session?.user.id);
@@ -90,52 +109,41 @@ export default function EventPage() {
       console.error("Register error:", error);
     }
   };
+  // console.log(tooltip, IsRegistered);
 
+  console.log(data, originalArgs);
   useEffect(() => {
     if (!id) return;
 
-    const fetchEvent = async () => {
-      try {
-        const res = await fetch(`/api/events/${id}`, {
-          next: { revalidate: 60, tags: [`events/${id}`] },
-        });
-        const data = await res.json();
-        console.log(data);
-        if (!res.ok) {
-          toast.error(data.message || "Event not found");
-          return;
-        }
-
-        setEvent(data?.event);
-        setAssosciatedClub(data?.eventAssociatedClub[0]);
-        setImageList(data?.eventsImageList);
-        setRegisteredUser(data?.eventRegisterList);
-        const tooltipData: Item[] =
-          data?.eventRegisterList?.map((reg: registerdUser) => ({
-            id: reg.user.id,
-            name: reg.user.firstname || "N/A",
-            image: reg.user.avatar,
-          })) || [];
-        settooltip(tooltipData);
-        if (tooltip) {
-          const registered = tooltip?.every(
-            (arg) => arg.id === session?.user.id
-          );
-          setIsRegistered(registered);
-        }
-      } catch (error) {
-        toast.error("Failed to fetch event details");
-        console.error(error);
-      }
-    };
-
-    fetchEvent();
-  }, [id]);
-
+    if (data) {
+      setEvent(data?.event);
+      setAssosciatedClub(data?.eventAssociatedClub[0]);
+      setImageList(data?.eventsImageList);
+      // setRegisteredUser(data?.eventRegisterList);
+      const tooltipData: Item[] =
+        data?.eventRegisterList?.map((reg: registerdUser) => ({
+          id: reg.user.id,
+          name: reg.user.firstname || "N/A",
+          image: reg.user.avatar,
+        })) || [];
+      settooltip(tooltipData);
+    } else {
+      refetch();
+    }
+  }, [data, refetch, id]);
+  useEffect(() => {
+    if (tooltip) {
+      const registered = tooltip.findIndex((u) => u.id === session?.user.id);
+      setIsRegistered(registered !== -1);
+    }
+  }, [tooltip, session?.user.id]);
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
   if (!event) return <div>Loading...</div>;
-
+  console.log(ImageList?.filter((img) => img.imageType === "banner"));
   return (
-    <div className="container mx-auto p-6">
+    <div className="space-y-8 max-w-5xl mx-auto p-4">
       {/* Navbar */}
       <nav className="flex justify-between items-center rounded-2xl p-4 bg-gray-900 text-white">
         <Image
@@ -154,15 +162,34 @@ export default function EventPage() {
           <Link href="/sign-in" className="mr-4">
             Login
           </Link>
-          <Link href="/dashboard">Dashboard</Link>
+          {/* <Link href="/dashboard">Dashboard</Link> */}
         </div>
       </nav>
 
       {/* Hero Banner Image */}
-      <div
-        className="w-full h-[300px] bg-cover bg-center"
-        style={{ backgroundImage: `url(${imagepic})` }}
-      ></div>
+      {ImageList.length > 0 && (
+        <Swiper
+          observer={true}
+          observeParents={true}
+          updateOnWindowResize={true}
+          modules={[Autoplay]}
+          loop
+          autoplay={{ delay: 2000 }}
+          className="rounded-xl border-2 border-amber-50"
+        >
+          {ImageList.map((img, i) => (
+            <SwiperSlide key={i}>
+              <Image
+                width={1024}
+                height={768}
+                src={img.imageUrl}
+                alt={`Cover ${i}`}
+                className="w-full h-96 object-cover"
+              />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      )}
 
       {/* Event Info Section */}
       <section className="mt-8">
@@ -183,8 +210,8 @@ export default function EventPage() {
                 {" - "}
                 {event.endTime
                   ? new Date(event.endTime).toLocaleTimeString(undefined, {
-                    day:"2-digit",  
-                    hour: "numeric",
+                      day: "2-digit",
+                      hour: "numeric",
                       minute: "numeric",
                     })
                   : "N/A"}
@@ -197,7 +224,7 @@ export default function EventPage() {
                     target="_blank"
                     className="text-blue-500 hover:underline"
                   >
-                    Registration
+                    Registration Link
                   </Link>
                 </p>
               )}
@@ -236,7 +263,7 @@ export default function EventPage() {
               <h3 className="text-xl font-semibold">{AssociatedClub?.name}</h3>
               <p>{AssociatedClub?.description}</p>
               <Link
-                href={`/clubs/${AssociatedClub?.name}`}
+                href={`/clubs/${AssociatedClub?.slug}`}
                 className="text-blue-500"
               >
                 View Club Page
@@ -255,7 +282,7 @@ export default function EventPage() {
           <CardContent>
             <div className="flex space-x-4 overflow-x-auto">
               {/* Placeholder for gallery images */}
-              {ImageList&& ImageList[0] && (
+              {ImageList && ImageList[0] && (
                 <Image
                   src={ImageList[0]?.imageUrl}
                   width={96}
@@ -283,19 +310,37 @@ export default function EventPage() {
           <h2 className="text-2xl font-bold">
             Past Events by {AssociatedClub?.name}
           </h2>
-          <div className="flex space-x-4 overflow-x-auto py-4">
-            <div className="w-60 bg-gray-600 p-4 rounded-md">
-              <h3 className="font-semibold">Event 1</h3>
-              <p className="text-sm">Description of Event 1</p>
-            </div>
-            <div className="w-60 bg-gray-600 p-4 rounded-md">
-              <h3 className="font-semibold">Event 2</h3>
-              <p className="text-sm">Description of Event 2</p>
-            </div>
-            <div className="w-60 bg-gray-600 p-4 rounded-md">
-              <h3 className="font-semibold">Event 3</h3>
-              <p className="text-sm">Description of Event 3</p>
-            </div>
+          <div className="flex flex-row flex-nowrap gap-4 overflow-x-auto py-4">
+            {AssociatedClub?.eventsOrganized
+              ?.filter((e) => e.id !== event.id)
+              .map((e, idx) => (
+                <div
+                  key={e.id}
+                  className="flex-shrink-0 w-60 p-4 rounded-md flex flex-col justify-between bg-white dark:bg-gray-800 shadow-lg transition-transform duration-300 ease-in-out hover:-translate-y-2 hover:scale-105 hover:shadow-2xl animate-fade-in"
+                  style={{
+                    minWidth: "15rem",
+                    animationDelay: `${idx * 80}ms`,
+                    animationFillMode: "backwards",
+                  }}
+                >
+                  <h3 className="font-semibold">{e.name}</h3>
+                  <p className="text-sm flex-1 line-clamp-3">{e.description}</p>
+                  <p className="text-xs mt-2">
+                    {new Date(e.eventDate).toLocaleDateString()}
+                  </p>
+                  <Link
+                    href={`/events/${e.id}`}
+                    className="text-blue-300 text-xs underline mt-2 block"
+                  >
+                    View Event
+                  </Link>
+                </div>
+              ))}
+            {(!AssociatedClub?.eventsOrganized ||
+              AssociatedClub.eventsOrganized.filter((e) => e.id !== event.id)
+                .length === 0) && (
+              <div className="text-gray-400">No past events found.</div>
+            )}
           </div>
         </div>
       </section>

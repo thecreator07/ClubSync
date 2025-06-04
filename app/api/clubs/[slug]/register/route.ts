@@ -1,9 +1,11 @@
+//registering a user to a club
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import { db } from '@/db';
-import { clubs, members } from '@/db/schema';
+// import { clubs, members } from '@/db/schema';
 import { and, eq, or } from 'drizzle-orm';
+import { clubs, members } from '@/db/schema&relation';
 
 export async function POST(
   req: NextRequest,

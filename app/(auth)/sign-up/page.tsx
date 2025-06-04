@@ -25,10 +25,10 @@ import { toast } from "sonner";
 
 export default function SignUpPage() {
   const router = useRouter();
-  
+
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: "", password: "", firstname: "", lastname: "" },
   });
 
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
@@ -39,33 +39,65 @@ export default function SignUpPage() {
         description: res.data.message,
         duration: 4000,
       });
-      
+
       router.replace(`/sign-in`);
     } catch (err) {
       const error = err as AxiosError<ApiResponse>;
 
       console.log(error);
       toast.error("SignUp Failed", {
-        description: error.response?.data.message  ?? "Something went wrong",
+        description: error.response?.data.message ?? "Something went wrong",
         duration: 5000,
       });
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg space-y-6">
+    <div className="flex items-center justify-center min-h-screen ">
+      <div className="w-full max-w-md p-8 border rounded-xl shadow-lg space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl dark:text-black font-bold">
-            Join ClubSync
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Sign up to start your adventure
-          </p>
+          <h1 className="text-3xl  font-bold">Join ClubSync</h1>
+          <p className="text-gray-600 mt-2">Sign up to start your adventure</p>
         </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                name="firstname"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>firstname</FormLabel>
+                    <Input
+                      {...field}
+                      placeholder="John"
+                      className="text-amber-950"
+                    />
+                    {/* <p className="text-xs text-gray-400 mt-1">
+                    We’ll send you a verification code.
+                  </p> */}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="lastname"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>lastname</FormLabel>
+                    <Input
+                      {...field}
+                      placeholder="Doe"
+                      className="text-amber-950"
+                    />
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             {/* Email */}
             <FormField
               name="email"
@@ -73,7 +105,11 @@ export default function SignUpPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
-                  <Input {...field} placeholder="you@example.com"  className="text-amber-950"/>
+                  <Input
+                    {...field}
+                    placeholder="you@example.com"
+                    className="text-amber-950"
+                  />
                   {/* <p className="text-xs text-gray-400 mt-1">
                     We’ll send you a verification code.
                   </p> */}
@@ -89,7 +125,12 @@ export default function SignUpPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
-                  <Input type="password" {...field} placeholder="••••••••" className="text-amber-950"/>
+                  <Input
+                    type="password"
+                    {...field}
+                    placeholder="••••••••"
+                    className="text-amber-950"
+                  />
                   <FormMessage />
                 </FormItem>
               )}

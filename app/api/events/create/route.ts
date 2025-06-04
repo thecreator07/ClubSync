@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import { db } from '@/db';
-import { eventInsertSchema, events, members } from '@/db/schema';
+// import { eventInsertSchema, events, members } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { TypeOf, z } from 'zod';
-
-type EventRequestBody = z.infer<typeof eventInsertSchema>
+import { eventInsertSchema, events, members } from '@/db/schema&relation';
+import { EventRequestBody } from '@/lib/validation/EventSchema';
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);

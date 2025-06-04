@@ -22,7 +22,7 @@ type ProfileFormValues = z.infer<typeof userUpdateSchema>;
 
 export default function ManageProfilePage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session } = useSession(); 
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(userUpdateSchema),

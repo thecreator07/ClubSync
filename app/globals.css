@@ -120,3 +120,59 @@
     @apply bg-background text-foreground;
   }
 }
+
+.carousel-container {
+  position: relative; /* Required for absolutely positioned overlays */ 
+  overflow: hidden;   /* Hide content beyond edges */
+}
+
+.carousel-container::before,
+.carousel-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 80px;               /* Adjust fade width */
+  height: 100%;
+  z-index: 10;               /* Above carousel items */
+  pointer-events: none;      /* Allow clicks through */
+}
+
+.carousel-container::before {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    #0a0a0a 25%,      /* Opaque background color */
+    rgba(255,255,255,0) 100% /* Transparent */
+  );
+}
+
+.carousel-container::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    #0a0a0a 25%,      /* Opaque background color */
+    rgba(255,255,255,0) 100% /* Transparent */
+  );
+}
+
+
+/* html {
+    font-size: 70%;
+    overflow-x: hidden;
+    scroll-padding-top: 9rem;
+    scroll-behavior: smooth;
+} */
+html::-webkit-scrollbar{
+    width: 0.2rem;
+    display: none;
+}
+
+html::-webkit-scrollbar-track{
+    background: transparent;
+    
+}
+
+html::-webkit-scrollbar-thumb{
+    background: rgb(54, 58, 38);
+    border-radius: 5rem;
+}

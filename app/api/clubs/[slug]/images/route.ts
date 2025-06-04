@@ -1,6 +1,7 @@
 // app/api/club/[slug]/images/route.ts
 import { db } from "@/db";
-import { clubs } from "@/db/schema";
+import { clubs } from "@/db/schema&relation";
+// import { clubs } from "@/db/schema";
 import { clubImages } from "@/db/schema/images";
 import { eq } from "drizzle-orm";
 // import { eq } from "drizzle-orm";

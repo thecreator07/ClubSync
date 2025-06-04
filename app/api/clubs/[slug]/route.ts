@@ -2,53 +2,23 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { clubs, members, users, events, clubSelectSchema, eventSelectSchema, userSelectSchema, memberSelectSchema } from '@/db/schema';
+// import { clubs, members, users, events, clubSelectSchema, eventSelectSchema, userSelectSchema, memberSelectSchema } from '@/db/schema';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/option';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { clubImages } from '@/db/schema/images';
 import { z } from 'zod';
-
-
-
-const userFields = userSelectSchema
-  .pick({
-    id: true,
-    email: true,
-    firstname: true,
-    lastname: true,
-    avatar: true,
-  })
-  .transform(user => ({
-    id: user.id,
-    email: user.email,
-    firstname: user.firstname,
-    lastname: user.lastname,
-    avatar: user.avatar,
-  }));
-
-const memberFields = memberSelectSchema.pick({ role: true });
-
-// Merge into one schema
-export const memberWithUserSchema = z
-  .object({})
-  .merge(userFields._def.schema)
-  .merge(memberFields);
-// const mergedmember = userFields(memberFields)
-
-export const membersListSchema = z.array(memberWithUserSchema);
+import { clubs, clubSelectSchema, events, eventSelectSchema, members,users } from '@/db/schema&relation';
 
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
 
   try {
-    // 1. Fetch club + members + users + events in 2-3 queries
-
-    // Fetch club
+    
     const [club] = await db.select().from(clubs).where(eq(clubs.slug, slug)).limit(1);
 
     if (!club) {
@@ -61,7 +31,7 @@ export async function GET(
     const clubId = club.id;
     const now = new Date();
 
-    // Fetch members (with user data) and events (upcoming + past)
+   
     const [membersList, eventsList, imagesList] = await Promise.all([
       db
         .select({
@@ -80,7 +50,7 @@ export async function GET(
         .select({
           id: events.id,
           name: events.name,
-          description: events.description,  
+          description: events.description,
           eventDate: events.eventDate,
           location: events.location
         })
@@ -91,9 +61,6 @@ export async function GET(
       db.select({ public_id: clubImages.public_id, imageType: clubImages.imageType, imageUrl: clubImages.imageUrl }).from(clubImages).where(eq(clubImages.clubId, clubId)),
     ])
 
-    const membersField = membersListSchema.parse(membersList)
-
-
     const parsedclubData = clubSelectSchema.parse(club)
 
     const parsedeventsArray = z.array(eventSelectSchema)
@@ -103,7 +70,7 @@ export async function GET(
     const pastEvents = parsedEventData.filter(e => new Date(e.eventDate) < now);
 
     // Find president
-    const president = membersField.find(m => m.role === 'president');
+    const president = membersList.find(m => m.role === 'president');
 
     //split images as hero, logo,thumbnail
     const heroImages = imagesList.filter((image) => image.imageType === 'hero');
@@ -116,7 +83,7 @@ export async function GET(
     if (user) {
       isMember = membersList.some(m => m.id === Number(user.id));
     }
- 
+
     // console.log({ parsedclubData, president, membersCount: membersList.length, upcomingEvents, pastEvents, isMember, logoImages, heroImages,membersField });
 
     return NextResponse.json(
@@ -127,7 +94,7 @@ export async function GET(
         totalMembers: membersList.length,
         upcomingEvents,
         pastEvents,
-        members: membersField,
+        members: membersList,
         heroImages: heroImages,
         logoImages: logoImages[0],
         isMember,

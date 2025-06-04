@@ -9,30 +9,19 @@ import { eventImages } from "./images";
 
 export const events = pgTable("events", {
   id: serial("id").primaryKey(),
-  clubId: integer("club_id").references(() => clubs.id).notNull(), // Linking to the Club
+  clubId: integer("club_id").references(() => clubs.id), // Linking to the Club
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description").notNull(),
   eventDate: date("event_date").notNull(),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time").notNull(),
-
   location: varchar("location", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow(),
   registrationLink: varchar("registration_link", { length: 255 }) // A link to register for the event
-});
+},);
 
 
 export const eventSelectSchema = createSelectSchema(events, { clubId: z.number().optional(), startTime: z.date().optional(), endTime: z.date().optional(), registrationLink: z.string().url().optional(), createdAt: z.date().optional() })
 export const eventInsertSchema = createInsertSchema(events, { registrationLink: z.string().url().optional(), })
 export const eventUpdateSchema = createUpdateSchema(events, { registrationLink: z.string().url().optional(), })
 
-export const eventsRelations = relations(events, ({ one, many }) => ({
-  organizingClub: one(clubs, { // An event is organized by one club
-    fields: [events.clubId],
-    references: [clubs.id],
-  }),
-  registrations: many(eventRegistrations), // An event can have many user registrations
-  eventImagesList: many(eventImages, {
-    relationName: "eventImagesList",
-  }) // An event can have many images
-}));

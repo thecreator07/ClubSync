@@ -1,287 +1,313 @@
 "use client";
 
-import Navbar from "@/components/NavBar";
-import { Button } from "@/components/ui/button";
+import { CldImage } from "next-cloudinary";
+// import { useSession } from "next-auth/react";
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { userSelectSchema } from "@/db/schema";
-import {
-  userprofileclubSchema,
-  userprofileEventSchema,
-} from "@/types/UserProfileSchema";
-import { Dialog } from "@radix-ui/react-dialog";
-import { useSession } from "next-auth/react";
-import { CldImage } from "next-cloudinary";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { z } from "zod";
+import { useRouter, useParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
-// import Navbar from "@/components/Navbar";
-// import Footer from "@/components/Footer";
-type UserprofileSchema = z.infer<typeof userSelectSchema>;
-type UserClubsSchema = z.infer<typeof userprofileclubSchema>;
-type userEventsSchema = z.infer<typeof userprofileEventSchema>;
-const ProfilePage = () => {
-  const { data: session } = useSession(); // Get user session
-  // const [userData, setUserData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [user, setuser] = useState<UserprofileSchema | null>(null);
-  const [clubs, setclubs] = useState<UserClubsSchema[] | null>([]);
-  const [events, setevents] = useState<userEventsSchema[] | null>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [file, setfile] = useState<File | null>(null);
+type Club = {
+  clubId: number;
+  clubrole: string;
+  clubname: string;
+  clubslug: string;
+};
+type Event = {
+  eventId: number;
+  eventName: string;
+  eventDate: string;
+};
+type User = {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  avatar?: string;
+  aoi?: string;
+  role?: string;
+  points?: number;
+};
+
+export default function ProfilePage() {
   const router = useRouter();
+  const params = useParams();
+  // const { data: session } = useSession();
 
-  const fetchUserProfile = async () => {
-    try {
-      // Replace the API call below with the correct backend endpoint
-      const response = await fetch(`/api/users/${session?.user.id}`);
-      const data = await response.json();
-      if (data.success) {
-        // setUserData(data.data);
-        console.log("get data", data.data);
-        setuser(data?.data.parsedUserData);
-        setclubs(data?.data?.clubsdata);
-        setevents(data?.data?.eventsData);
-        // console.log(session)
-      } else {
-        console.error("Failed to fetch user profile");
-      }
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [user, setUser] = useState<User | null>(null);
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    if (session) {
-      fetchUserProfile();
+    async function fetchProfileData() {
+      if (!params?.id) return;
+      const res = await fetch(`/api/users/${params.id}`);
+      const json = await res.json();
+      if (json.success) {
+        setUser(json.data.parsedUserData);
+        setClubs(json.data.clubsdata || []);
+        setEvents(json.data.eventsData || []);
+      }
     }
-  }, [session]);
-  console.log(file);
+    fetchProfileData();
+  }, [params?.id]);
+
   const handleUpload = async () => {
     if (!file) return;
     setIsUploading(true);
+
     try {
-      const formdata = new FormData();
+      const formData = new FormData();
+      formData.append("avatar", file);
 
-      formdata.append("avatar", file);
-      const result = await fetch("/api/file-update/avatar", {
+      const res = await fetch("/api/file-update/avatar", {
         method: "PUT",
-        body: formdata,
+        body: formData,
       });
 
-      const data = await result.json();
-      console.log(data);
-      if (!result.ok) {
-        toast.error("Upload failed", { description: data?.message });
-        return;
+      const data = await res.json();
+
+      if (data.success) {
+        // Refetch user data to update avatar
+        const userRes = await fetch(`/api/users/${params.id}`);
+        const userJson = await userRes.json();
+        if (userJson.success) {
+          setUser(userJson.data.parsedUserData);
+        }
+        setFile(null);
+      } else {
+        alert(data.message || "Failed to upload avatar");
       }
-
-      toast.success("Image uploaded", { description: data?.message });
-      setfile(null);
-      fetchUserProfile();
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Something went wrong";
-      toast.error("Unexpected error", {
-        description: errorMessage,
-      });
+      if (err instanceof Error) {
+        alert("Error uploading avatar");
+      }
     } finally {
       setIsUploading(false);
     }
   };
-  if (loading) {
-    return <div>Loading...</div>; // Show loading state until the data is fetched
-  }
 
-  // if (!userData) {
-  //     return <div>No user data found</div>; // In case no data is found
-  // }
+  if (!user) return <div className="p-10 text-center">Loading...</div>;
 
   return (
-    <div className="bg-gray-100 min-h-screen flex flex-col">
-      <Navbar />
-
-      {/* Big Cover Banner */}
-      <div className="relative w-full h-60 bg-blue-600">
-        <div className="absolute inset-0 bg-black opacity-50"></div>
-        <div className="absolute inset-0 flex justify-center items-center">
-          <h1 className="text-white text-3xl font-bold">
-            {session?.user.name}
+    <div className="bg-gray-50 dark:bg-black min-h-screen pb-20">
+      {/* Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative h-64 bg-gradient-to-r from-indigo-500 to-purple-600"
+      >
+        <div className="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-sm" />
+        <div className="relative z-10 h-full flex items-center justify-center">
+          <h1 className="text-white text-4xl font-bold drop-shadow-lg">
+            Welcome, {user.firstname}
           </h1>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Profile Section */}
-      <div className="container mx-auto p-6">
-        {/* Avatar, Name, Email, Edit Profile */}
-        <div className="flex items-center space-x-6 bg-white p-6 rounded-lg shadow-md">
-          <Dialog >
+      {/* Profile Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
+        className="max-w-6xl mx-auto px-4 -mt-24"
+      >
+        <div className="bg-white relative dark:bg-gray-900 p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-center gap-6">
+          {/* Avatar Upload */}
+          <Dialog>
             <DialogTrigger asChild>
-              <div
-                className="w-24 h-24 bg-gray-300 rounded-full cursor-pointer overflow-hidden"
-                title="Click to change avatar"
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="cursor-pointer"
               >
-                {user?.avatar ? (
-                  <CldImage
-                    width={96}
-                    height={96}
-                    src={user.avatar}
-                    alt={`${user.firstname || "User"} avatar`}
-                    crop="fill"
-                    gravity="auto"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-500">
-                    Upload
-                  </div>
-                )}
-              </div>
+                <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-white dark:ring-gray-800 shadow">
+                  {user.avatar ? (
+                    <CldImage
+                      width={128}
+                      height={128}
+                      src={user.avatar}
+                      alt="User Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-700">
+                      Upload
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             </DialogTrigger>
-
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent>
               <DialogHeader>
-                <DialogTitle>Change Avatar</DialogTitle>
+                <DialogTitle>Update Profile Picture</DialogTitle>
                 <DialogDescription>
-                  Choose a new profile picture and click “Upload”.
+                  Choose a new image to upload.
                 </DialogDescription>
               </DialogHeader>
-
-              <div className="mt-4 space-y-4">
-                
-
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setfile(e.target.files?.[0] || null)}
-                  className="w-full md:max-w-sm"
-                />
-
-                <Button
-                  onClick={handleUpload}
-                  disabled={!file || isUploading}
-                  className="w-full"
-                >
-                  {isUploading ? "Uploading..." : "Upload Avatar"}
-                </Button>
-              </div>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+              />
+              <Button onClick={handleUpload} disabled={!file || isUploading}>
+                {isUploading ? "Uploading..." : "Upload"}
+              </Button>
             </DialogContent>
           </Dialog>
-          {/* Avatar placeholder */}
-          <div className="flex flex-col">
-            <h2 className="text-2xl font-semibold">
-              {session?.user?.name && ""}
+
+          {/* User Info */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {user.firstname} {user.lastname}
             </h2>
-            <p className="text-gray-500">{session?.user?.email}</p>
-            <button
-              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md"
-              onClick={() => router.push(`/users/${session?.user?.id}/manage`)}
+            <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
+            <Button
+              className="mt-3"
+              onClick={() => router.push(`/users/${user.id}/manage`)}
             >
               Edit Profile
-            </button>
+            </Button>
           </div>
         </div>
 
-        {/* Bio Section */}
-        <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-xl text-slate-950 font-semibold">Bio</h3>
-          <div className="mt-2 text-gray-700">
-            {/* Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque sit
-            amet accumsan arcu. */}
-            {user ? (
-              <p className="text-slate-900">{user.aoi}</p>
+        {/* Bio */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="mt-8 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow"
+        >
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Bio
+          </h3>
+          <p className="mt-2 text-gray-700 dark:text-gray-300">
+            {user.aoi || "No bio added yet."}
+          </p>
+        </motion.div>
+
+        {/* Stats Grid */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.2 } },
+          }}
+          className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          {[
+            { title: "🔥 Points", value: user.points ?? 0 },
+            { title: "🏆 Events Joined", value: events.length },
+            { title: "🎯 Clubs Joined", value: clubs.length },
+            { title: "🛡️ Role", value: user.role },
+          ].map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow text-center hover:shadow-lg transition-shadow"
+            >
+              <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300">
+                {item.title}
+              </h4>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {item.value}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Clubs */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          className="mt-10 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow"
+        >
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Joined Clubs
+          </h3>
+          <div className="flex flex-wrap gap-2 mt-4">
+            {clubs.length ? (
+              clubs.map((club, i) => (
+                <motion.span
+                  key={i}
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-white px-3 py-1 rounded-full cursor-pointer"
+                  onClick={() => router.push(`/clubs/${club.clubslug}`)}
+                >
+                  {club.clubname}
+                </motion.span>
+              ))
             ) : (
-              <p className="text-slate-950">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque
-                sit amet accumsan arcu.
+              <p className="text-gray-500 dark:text-gray-400">
+                No clubs joined.
               </p>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Stats Cards */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h4 className=" font-semibold">🔥 Points</h4>
-            <p className="mt-2 text-gray-700">1500</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h4 className=" text-slate-950 font-semibold">🏆 Events Joined</h4>
-            <p className="mt-2 text-gray-700">{events && events.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h4 className=" font-semibold text-slate-950">🎯 Clubs Joined</h4>
-            <p className="mt-2 text-gray-700">{clubs && clubs.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h4 className="text-slate-950 font-semibold">🛡️ Role</h4>
-            <p className="mt-2 text-gray-700">{session?.user?.role}</p>
-          </div>
-        </div>
-
-        {/* Joined Clubs Section */}
-        <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-slate-900 font-semibold">Joined Clubs</h3>
-          <ul className="mt-4 space-y-2">
-            {clubs &&
-              clubs.map((club, i) => {
-                return (
-                  <li
-                    key={i}
-                    onClick={() => router.push(`/clubs/${club.clubslug}`)}
-                    className="text-gray-700"
-                  >
-                    {club.clubname}
-                  </li>
-                );
-              })}
-          </ul>
-        </div>
-
-        {/* Past Events Participated */}
-        <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-slate-900 font-semibold">
-            Past Events Participated
+        {/* Events */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="mt-10 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow"
+        >
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Past Events
           </h3>
-          {events &&
-            events.map((event, i) => {
-              return (
-                <div
-                  className="text-slate-900 flex items-center"
+          <ul className="mt-4 space-y-2">
+            {events.length ? (
+              events.map((event, i) => (
+                <motion.li
                   key={i}
-                  onClick={() => router.push(`events/${event.eventsId}`)}
+                  whileHover={{ scale: 1.01 }}
+                  className="cursor-pointer hover:underline text-gray-800 dark:text-white"
+                  onClick={() => router.push(`/events/${event.eventId}`)}
                 >
-                  <h1 className="">{event.eventName}</h1>&nbsp;-&nbsp;
-                  <p className="text-sm">{event.eventDate}</p>
-                </div>
-              );
-            })}
-        </div>
+                  <span className="font-medium">{event.eventName}</span> &mdash;
+                  <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">
+                    {event.eventDate}
+                  </span>
+                </motion.li>
+              ))
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">
+                No events participated yet.
+              </p>
+            )}
+          </ul>
+        </motion.div>
 
-        {/* Settings / Manage Profile */}
-        <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-          <button
-            onClick={() => router.push(`/users/${session?.user?.id}/manage`)}
-            className="w-full text-blue-600 font-semibold py-2 border border-blue-600 rounded-md"
+        {/* Manage Profile */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7, duration: 0.6 }}
+          className="mt-10 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow text-center"
+        >
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/users/${user.id}/manage`)}
           >
             Manage Profile Settings
-          </button>
-        </div>
-      </div>
-
-      {/* <Footer /> */}
+          </Button>
+        </motion.div>
+      </motion.div>
     </div>
   );
-};
-
-export default ProfilePage;
+}

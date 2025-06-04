@@ -1,11 +1,12 @@
 // authOptions.ts
 import { db } from "@/db";
-import { members, users } from "@/db/schema"; // Your users table
+// import { members, users } from "@/db/schema"; // Your users table
 import { eq } from "drizzle-orm";
 import { compare } from "bcryptjs"; // Secure password comparison
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextAuthOptions } from "next-auth";
 import { User as NextAuthUser } from "next-auth";
+import { members, users } from "@/db/schema&relation";
 
 // Extend the Session and User types to include the 'id' property
 

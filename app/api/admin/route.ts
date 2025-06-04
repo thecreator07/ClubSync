@@ -1,6 +1,7 @@
 // app/api/admin/members/route.ts
 import { db } from "@/db";
-import { clubs, members, users } from "@/db/schema";
+import { clubs, members, users } from "@/db/schema&relation";
+// import { clubs, members, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 

@@ -9,7 +9,7 @@ import { createInsertSchema } from 'drizzle-zod'
 // POST /api/sign-up
 export async function POST(req: Request) {
     try {
-        const { email, password } = await req.json();
+        const { email, password, firstname, lastname } = await req.json();
 
         // 1) check if username is already taken by a verified user
         const [taken] = await db
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
         const hashed = await bcrypt.hash(password, 10);
         const userInsertschema = createInsertSchema(users)
-        const parsedData: { email: string, password: string } = userInsertschema.parse({ email, password: hashed })
+        const parsedData: { email: string, password: string } = userInsertschema.parse({ email, password: hashed,firstname, lastname })
         const res = await db.insert(users).values(parsedData).returning();
 
         return NextResponse.json(

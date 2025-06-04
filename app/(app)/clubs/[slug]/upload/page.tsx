@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { CldImage } from "next-cloudinary";
-
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -17,6 +15,7 @@ import {
 import DeleteClubImageButton from "@/components/DeleteImageButton";
 import { z } from "zod";
 import { clubImageInsertSchema } from "@/db/schema/images";
+import { FileUpload } from "@/components/ui/file-upload";
 
 type ClubImage = z.infer<typeof clubImageInsertSchema>;
 
@@ -41,12 +40,15 @@ export default function ClubGallery() {
       const data = await res.json();
       setImages(data);
     } catch (err) {
-      console.error("Failed to load images", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load images";
+      toast.error("Error loading images", { description: errorMessage });
     }
   };
 
   useEffect(() => {
     fetchImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleUpload = async () => {
@@ -66,14 +68,14 @@ export default function ClubGallery() {
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error("Upload failed", { description: data?.message });
+        toast.error("Upload failed", { description: data?.message, duration: 3000 });
         return;
       }
 
       toast.success("Image uploaded", { description: data?.message });
       setFile(null);
       fetchImages();
-    } catch (err: unknown) {
+    } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Something went wrong";
       toast.error("Unexpected error", {
@@ -84,58 +86,54 @@ export default function ClubGallery() {
     }
   };
 
+  const handleFileUpload = (files: File[]) => {
+    setFile(files[0]);
+  };
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto p-4">
       {/* Upload Form */}
-      <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-        <Input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
-          className="w-full md:max-w-sm"
-        />
+      <div className="flex flex-col justify-center items-center gap-4">
+        <FileUpload onChange={handleFileUpload} />
+        <div className="flex justify-between w-full">
+          <Select
+            value={selectedFormat}
+            onValueChange={(val) => setSelectedFormat(val as ImageFormat)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select Format" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.keys(ImageFormats).map((format) => (
+                <SelectItem key={format} value={format}>
+                  {format}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select
-          value={selectedFormat}
-          onValueChange={(val) => setSelectedFormat(val as ImageFormat)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select Format" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.keys(ImageFormats).map((format) => (
-              <SelectItem key={format} value={format}>
-                {format}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Button
-          onClick={handleUpload}
-          disabled={uploading || !file}
-          className="w-full md:w-auto"
-        >
-          {uploading ? "Uploading..." : "Upload"}
-        </Button>
+          <Button
+            onClick={handleUpload}
+            disabled={uploading || !file}
+            className="w-fit md:w-auto"
+          >
+            {uploading ? "Uploading..." : "Upload"}
+          </Button>
+        </div>
       </div>
 
       {/* Image Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="columns-2 md:columns-3 gap-4 space-y-4">
         {images.map((img) => (
-          <div
-            key={img.public_id}
-            className="relative group rounded-lg overflow-hidden shadow border"
-          >
+          <div key={img.public_id} className="break-inside-avoid relative group">
             <CldImage
-              width={ImageFormats[selectedFormat].width}
-              height={ImageFormats[selectedFormat].height}
+              width={ImageFormats[img.imageType as ImageFormat].width}
+              height={ImageFormats[img.imageType as ImageFormat].height}
               src={img.public_id}
               alt="Club image"
               crop="fill"
               gravity="auto"
-              aspectRatio={ImageFormats[selectedFormat].aspectRatio}
-              className="w-full h-full object-cover"
+              className="w-full h-auto rounded shadow object-cover"
             />
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
               <DeleteClubImageButton

@@ -47,6 +47,10 @@ export async function POST(req: NextRequest,) {
         if (!file) {
             return NextResponse.json({ success: false, message: "No file provided" }, { status: 400 });
         }
+      
+        if (!file.type.startsWith("image/")) {
+            return NextResponse.json({ success: false, message: "File must be an image" }, { status: 400 });
+        }
         if (!slug) {
             return NextResponse.json({ success: false, message: "No slug provided" }, { status: 400 });
         }
@@ -107,10 +111,10 @@ export async function POST(req: NextRequest,) {
 
         // 3. Insert image into club_images table
         const newclubImage = await db.insert(clubImages).values({
-            clubId: club.id as number, 
+            clubId: club.id as number,
             public_id: result.public_id as string,
-            imageUrl: result.secure_url as string, 
-            imageType: ImageType, 
+            imageUrl: result.secure_url as string,
+            imageType: ImageType,
         }).returning();
 
         return NextResponse.json({ success: true, data: newclubImage[0], message: "Uploaded File Successfully", }, { status: 200 });

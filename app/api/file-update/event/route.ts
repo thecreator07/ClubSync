@@ -73,11 +73,11 @@ export async function POST(req: NextRequest,) {
             return NextResponse.json({ success: false, message: `${ImageType} limit reached` }, { status: 400 });
         }
 
-        if (ImageType === 'banner' && eventimagetypecount >= 1) {
+        if (ImageType === 'banner' && eventimagetypecount >= 5) {
             return NextResponse.json({ success: false, message: `${ImageType} limit reached` }, { status: 400 });
         }
 
-        if (ImageType === 'gallery' && eventimagetypecount >= 5) {
+        if (ImageType === 'gallery' && eventimagetypecount >= 10) {
             return NextResponse.json({ success: false, message: `${ImageType} limit reached` }, { status: 400 });
 
         }

@@ -1,5 +1,6 @@
 import { db } from '@/db';
-import { clubs, events } from '@/db/schema';
+import { clubs, events } from '@/db/schema&relation';
+// import { clubs, events } from '@/db/schema';
 import { clubImages, eventImages } from '@/db/schema/images';
 import { eq } from 'drizzle-orm';
 // import { NextApiRequest, NextApiResponse } from 'next';

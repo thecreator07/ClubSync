@@ -10,7 +10,6 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import Image, { StaticImageData } from "next/image";
-import impic from "../../../../static/image.png";
 import {
   Card,
   CardHeader,
@@ -22,15 +21,23 @@ import {
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { CldImage } from "next-cloudinary";
 import { z } from "zod";
-// import { clubImageSelectSchema } from "@/db/schema/images";
-import { clubSelectSchema, eventSelectSchema } from "@/db/schema";
-import { membersListSchema } from "@/app/api/clubs/[slug]/route";
+// import { membersListSchema } from "@/app/api/clubs/[slug]/route";
+import { useGetClubBySlugQuery } from "@/services/api/clubs";
+import { clubSelectSchema, eventSelectSchema } from "@/db/schema&relation";
 
 type Club = z.infer<typeof clubSelectSchema>;
 
 type Event = z.infer<typeof eventSelectSchema>;
 
-type Member = z.infer<typeof membersListSchema>;
+
+export interface MemberWithRole {
+  id: string;
+  email: string;
+  firstname: string;
+  lastname: string;
+  avatar: string;
+  role: string;
+}
 
 interface images {
   public_id: string;
@@ -43,43 +50,59 @@ interface logoImages {
   imageUrl: string;
   imageType: string;
 }
+
 export default function ClubPage() {
   const { slug } = useParams();
   const router = useRouter();
   const { data: session } = useSession();
+  // console.log(slug)
+  const { data, isLoading, refetch, isError } = useGetClubBySlugQuery(
+    slug as string
+  );
+
   const [club, setClub] = useState<Club | null>(null);
   const [upcoming, setUpcoming] = useState<Event[]>([]);
   const [past, setPast] = useState<Event[]>([]);
-  const [members, setMembers] = useState<Member>([]);
+  const [members, setMembers] = useState<MemberWithRole[]>([]);
   const [images, setImages] = useState<images[]>([]);
   const [logo, setlogo] = useState<logoImages | null>(null);
   const [joined, setJoined] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
+  // if (data) {
+  // }
   // const {update} = useSession()
   // console.log(session, "session in club page")
+  // useEffect(() => {
+  //   async function fetchData() {
+  // try {
+  // const data = await res.json();
+  console.log(members);
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch(`/api/clubs/${slug}`);
-        const data = await res.json();
-        // console.log(data);
-        setClub(data.parsedclubData);
-        setUpcoming(data.upcomingEvents);
-        setPast(data.pastEvents);
-        setMembers(data.members);
-        setImages(data.heroImages);
-        setlogo(data.logoImages);
-        if (session) {
-          setJoined(data.isMember);
-        }
-      } catch {
-        toast.error("Failed to load club data");
-      } finally {
-        setLoading(false);
-      }
+    if (!slug) {
+      return;
     }
-    fetchData();
-  }, [slug, session]);
+    if (data) {
+      setClub(data?.parsedclubData);
+      setUpcoming(data?.upcomingEvents);
+      setPast(data?.pastEvents);
+      setMembers(data?.members);
+      setImages(data?.heroImages);
+      setlogo(data?.logoImages);
+    } else {
+      refetch();
+    }
+  }, [slug, data, refetch]);
+  // if (session) {
+  //   setJoined(data?.isMember);
+  // }
+  //   } catch {
+  //     toast.error("Failed to load club data");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
+  //   fetchData();
+  // }, []);
 
   const handleJoin = async () => {
     if (!session) return router.push("/sign-in");
@@ -118,9 +141,47 @@ export default function ClubPage() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
-  if (!club) return <div className="p-8 text-center">Club not found</div>;
+  // Handle event deletion
+  const handleDelete = async (eventId: string) => {
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    try {
+      const res = await fetch(`/api/events`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: eventId }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast.error("Error", {
+          description: json.message || "Failed to delete event",
+          duration: 2000,
+        });
+        return;
+      }
+      toast.success("Success", {
+        description: json.message || "Event deleted successfully",
+        duration: 2000,
+      });
+      // Remove deleted event from upcoming and past lists
+      setUpcoming((prev) => prev.filter((evt) => evt.id !== Number(eventId)));
+      setPast((prev) => prev.filter((evt) => evt.id !== Number(eventId)));
+    } catch (err: unknown) {
+      toast.error("Error", {
+        description: err instanceof Error ? err.message : "Unknown error",
+        duration: 2000,
+      });
+    }
+  };
 
+  if (isLoading) {
+    return <div className="p-8 text-center">Loading club details…</div>;
+  }
+  if (isError || !data?.success) {
+    return <div className="p-8 text-center">Failed to load club details.</div>;
+  }
+  if (!club) {
+    return <div className="p-8 text-center">Club not found.</div>;
+  }
   return (
     <div className="space-y-8 max-w-5xl mx-auto p-4">
       {/* Banner Carousel */}
@@ -145,16 +206,18 @@ export default function ClubPage() {
         </Swiper>
       )}
       {/* Club Header */}
-      <Card className="w-full max-w-5xl border border-amber-800 shadow-md rounded-lg p-4">
-        <CardHeader className="flex  space-x-4">
+      <Card className="w-full max-w-5xl border border-amber-800 shadow-md rounded-lg md:p-4">
+        <CardHeader className="flex  md:space-x-4">
           {logo && logo.public_id && (
-            <CldImage
-              width={96}
-              height={96}
-              src={logo?.public_id}
-              alt={logo?.imageType || "Club logo"}
-              className="rounded-full"
-            />
+            <div className="flex-shrink-0 rounded-full overflow-hidden w-12 h-12 hidden md:block">
+              <CldImage
+                width={96}
+                height={96}
+                src={logo?.public_id}
+                alt={logo?.imageType || "Club logo"}
+                className="w-full h-full object-cover"
+              />
+            </div>
           )}
           <div>
             <CardTitle className="text-2xl font-bold">{club.name}</CardTitle>
@@ -213,6 +276,7 @@ export default function ClubPage() {
       {/* About Section */}
       <section className="prose">
         <h2 className="font-bold">About</h2>
+        {/* <TextGenerateEffect words={club.about}/> */}
         <p>{club.about}</p>
       </section>
       {/* Upcoming Events */}
@@ -242,12 +306,19 @@ export default function ClubPage() {
                   {evt.description}
                 </p>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex gap-2.5">
                 <Button
                   size="sm"
                   onClick={() => router.push(`/events/${evt.id}`)}
                 >
                   View & Register
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDelete(String(evt.id))}
+                >
+                  Delete
                 </Button>
               </CardFooter>
             </Card>
@@ -265,18 +336,39 @@ export default function ClubPage() {
               {past.map((evt) => (
                 <Card
                   key={evt.id}
-                  className="min-w-[200px] bg-gray-700 p-4 rounded-lg"
+                  className="min-w-[260px] max-w-xs bg-white border border-gray-200 shadow-md rounded-xl flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-lg"
                 >
-                  <CardHeader onClick={() => router.push(`/events/${evt.id}`)}>
-                    <CardTitle className="text-lg font-semibold">
+                  <CardHeader
+                    className="cursor-pointer"
+                    onClick={() => router.push(`/events/${evt.id}`)}
+                  >
+                    <CardTitle className="text-lg font-bold text-gray-800 truncate">
                       {evt.name}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <time className="text-sm text-gray-500">
-                      {new Date(evt.eventDate).toLocaleDateString()}
+                    <time className="block text-xs text-gray-500 mb-2">
+                      {new Date(evt.eventDate).toLocaleDateString(undefined, {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </time>
+                    <p className="text-gray-600 text-sm line-clamp-2">
+                      {evt.description}
+                    </p>
                   </CardContent>
+                  <CardFooter className="flex justify-end pt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                      onClick={() => router.push(`/events/${evt.id}`)}
+                    >
+                      View Details
+                    </Button>
+                  </CardFooter>
                 </Card>
               ))}
             </div>

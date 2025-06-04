@@ -1,4 +1,3 @@
-// app/events/create/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -32,7 +31,7 @@ export default function CreateEventPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [clubs, setClubs] = useState<Club[]>([]);
-  // console.log(clubs, "session in create event page");
+
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventCreateSchema),
     defaultValues: {
@@ -42,34 +41,28 @@ export default function CreateEventPage() {
       eventDate: "",
       startTime: "",
       endTime: "",
-      // eventImage: "",
       location: "",
       registrationLink: "",
     },
   });
-  // session?.user;
-  // Fetch clubs
+
   useEffect(() => {
-    if (session) {
-      const fetchClubs = async () => {
-        try {
-          const res = await fetch("/api/clubs", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          });
-
-          const { data } = await res.json();
-
-          if (!res.ok) {
-            throw new Error("Failed to fetch clubs");
-          }
-          setClubs(data);
-        } catch (error) {
-          console.error("Failed to fetch clubs", error);
+    if (!session) return;
+    const fetchClubs = async () => {
+      try {
+        const res = await fetch("/api/clubs");
+        const data = await res.json();
+        if (!res.ok) throw new Error("Failed to fetch clubs");
+        setClubs(data.clubs);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("Failed to fetch clubs");
         }
-      };
-      fetchClubs();
-    }
+      }
+    };
+    fetchClubs();
   }, [session]);
 
   const onSubmit = async (data: EventFormValues) => {
@@ -87,28 +80,30 @@ export default function CreateEventPage() {
       });
 
       const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || "Failed to create event");
-      }
-      console.log(json);
+      if (!res.ok) throw new Error(json.message || "Failed to create event");
+
       toast("Event created!", {
-        description: `Event “${json.data.name}” created successfully!`,
-        duration: 5000,
+        description: `“${json.data.name}” was created successfully.`,
       });
 
       router.push(`/events/${json.data.id}`);
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unexpected error occurred";
-      toast("Error", { description: errorMessage, duration: 5000 });
+    } catch (err) {
+      toast("Error", {
+        description:
+          err instanceof Error ? err.message : "An unexpected error occurred",
+      });
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Create New Event</h1>
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-4xl font-bold mb-8 text-center">Create New Event</h1>
+
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6 bg-card p-6 rounded-2xl shadow-md border"
+        >
           {/* Club Dropdown */}
           <FormField
             name="clubId"
@@ -118,11 +113,15 @@ export default function CreateEventPage() {
                 <FormLabel>Club</FormLabel>
                 <select
                   {...field}
-                  className="w-full p-2 border rounded bg-background text-foreground"
+                  className="w-full p-2 border rounded-md bg-background text-foreground"
                 >
-                  <option value="">Select a Club</option>
+                  <option value="">Select a club</option>
                   {clubs
-                    .filter((club: Club) => club.id === Number(session?.user.clubId))
+                    .filter(
+                      (club) =>
+                        session?.user?.clubId === undefined ||
+                        club.id === Number(session.user.clubId)
+                    )
                     .map((club) => (
                       <option key={club.id} value={club.id}>
                         {club.name}
@@ -160,7 +159,6 @@ export default function CreateEventPage() {
               component: Input,
               type: "datetime-local",
             },
-            // { name: "eventImage", label: "Event Image URL", component: Input },
             { name: "location", label: "Location", component: Input },
             {
               name: "registrationLink",
@@ -175,7 +173,19 @@ export default function CreateEventPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{label}</FormLabel>
-                  <Component {...field} type={type} placeholder={label} />
+                  <Component
+                    {...field}
+                    type={type}
+                    className={`w-full px-3 py-2 rounded-md border text-sm bg-background text-foreground
+    ${
+      type === "date" || type === "datetime-local"
+        ? "appearance-none pr-10 relative"
+        : ""
+    }
+  `}
+                    placeholder={label}
+                    {...(Component === Textarea ? { rows: 5 } : {})}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
