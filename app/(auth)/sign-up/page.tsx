@@ -40,7 +40,7 @@ export default function SignUpPage() {
         duration: 4000,
       });
 
-      router.replace(`/sign-in`);
+      router.replace(`/users/${res.data.data?.id}/verify-code`);
     } catch (err) {
       const error = err as AxiosError<ApiResponse>;
 

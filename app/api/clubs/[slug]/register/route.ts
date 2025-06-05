@@ -1,11 +1,11 @@
-//registering a user to a club
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import { db } from '@/db';
-// import { clubs, members } from '@/db/schema';
 import { and, eq, or } from 'drizzle-orm';
 import { clubs, members } from '@/db/schema&relation';
+import { sendUserWelcomeEmail } from '@/helpers/sendWelcomeEmail';
+// import { sendUserWelcomeEmail } from '@/helpers/sendUserWelcomeEmail'; // Adjust path
 
 export async function POST(
   req: NextRequest,
@@ -36,8 +36,21 @@ export async function POST(
 
     const clubId = club.id;
 
-
-    const [ispresident] = await db.select({ clubrole: members.role, clubname: clubs.name }).from(members).innerJoin(clubs, eq(members.clubId, clubs.id)).where(and(eq(members.userId, userId), or(eq(members.role, 'president'), eq(members.role, 'secretary'), eq(members.role, 'treasurer')))).limit(1)
+    const [ispresident] = await db
+      .select({ clubrole: members.role, clubname: clubs.name })
+      .from(members)
+      .innerJoin(clubs, eq(members.clubId, clubs.id))
+      .where(
+        and(
+          eq(members.userId, userId),
+          or(
+            eq(members.role, 'president'),
+            eq(members.role, 'secretary'),
+            eq(members.role, 'treasurer')
+          )
+        )
+      )
+      .limit(1);
 
     if (ispresident) {
       return NextResponse.json(
@@ -45,7 +58,6 @@ export async function POST(
         { status: 409 }
       );
     }
-
 
     const [existingMember] = await db
       .select()
@@ -58,15 +70,9 @@ export async function POST(
         { success: false, message: 'Already a member' },
         { status: 409 }
       );
-
     }
 
-
-    // Counting total clubs that user has joined
-    const currentClubs = await db
-      .select()
-      .from(members)
-      .where(eq(members.userId, userId));
+    const currentClubs = await db.select().from(members).where(eq(members.userId, userId));
 
     if (currentClubs.length >= 3) {
       return NextResponse.json(
@@ -81,6 +87,15 @@ export async function POST(
       clubId,
       role: 'member',
     });
+
+    // Send welcome email to the user
+    if (user.email && user.name) {
+      const emailResponse = await sendUserWelcomeEmail(user.email, user.name, club.name);
+      if (!emailResponse.success) {
+        console.warn('Warning: Failed to send welcome email to user');
+        // We do not fail the whole request if email sending fails
+      }
+    }
 
     return NextResponse.json(
       { success: true, message: 'Successfully joined the club' },

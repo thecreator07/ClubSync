@@ -247,7 +247,7 @@ export default function ClubPage() {
         <div>Total Members: {members.length}</div>
       </div>
       <div className="flex items-center space-x-4">
-        {session && session.user && session.user.role !== "admin" && (
+        {session && session.user && session.user.role !== "admin" ? (
           <Button
             onClick={handleJoin}
             disabled={joined}
@@ -259,6 +259,8 @@ export default function ClubPage() {
           >
             {joined ? "Member" : "Join"}
           </Button>
+        ):(
+          <Button onClick={() => router.push(`/clubs/${club.slug}/upload`)}>upload</Button>
         )}
         {/* {console.log(session?.user.clubRole, "session in club page")} */}
         {["president", "secretary", "treasurer"].includes(

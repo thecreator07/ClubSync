@@ -1,5 +1,5 @@
 
-import { pgTable, serial, varchar, integer, date, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, integer, date, pgEnum, timestamp } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
@@ -24,6 +24,8 @@ export const users = pgTable('users', {
   verified: integer('verified').default(0),
   createdAt: date('created_at').defaultNow(),
   avatar: varchar('avatar', { length: 255 }),
+  verifyCode: varchar('otp', { length: 6 }).default(''),
+  verifyCodeExpiry: timestamp('verify_code_expiry').defaultNow(),
 });
 
 // 2. Create Zod schemas with role validation

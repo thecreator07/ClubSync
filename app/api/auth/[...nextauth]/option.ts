@@ -1,14 +1,12 @@
-// authOptions.ts
+
 import { db } from "@/db";
-// import { members, users } from "@/db/schema"; // Your users table
 import { eq } from "drizzle-orm";
-import { compare } from "bcryptjs"; // Secure password comparison
+import { compare } from "bcryptjs";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextAuthOptions } from "next-auth";
 import { User as NextAuthUser } from "next-auth";
 import { members, users } from "@/db/schema&relation";
 
-// Extend the Session and User types to include the 'id' property
 
 export const authOptions: NextAuthOptions = {
     session: {
@@ -38,6 +36,10 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("User not found");
                 }
 
+                if (!userResult.verified) {
+                    throw new Error("User not verified");
+                }
+
                 // Compare password
                 const isValidPassword = await compare(credentials.password, userResult.password);
                 if (!isValidPassword) {
@@ -53,7 +55,7 @@ export const authOptions: NextAuthOptions = {
 
                 let clubRole = clubmemberresult?.role || "";
                 const clubId = clubmemberresult?.clubId || "";
-                // If the user is not a member of any club, assign a default role (e.g., "guest" or "non-member")
+               
                 if (!clubmemberresult) {
                     clubRole = "non-member";  // Default role for non-members
                 }
@@ -97,8 +99,8 @@ export const authOptions: NextAuthOptions = {
         },
     },
     pages: {
-        signIn: "/auth/login", // Custom login page (optional)
-        error: "/auth/error",  // Custom error page (optional)
+        signIn: "/auth/login", 
+        error: "/auth/error",  
     },
-    secret: process.env.NEXTAUTH_SECRET!, // Very important! 🔒
+    secret: process.env.NEXTAUTH_SECRET!, 
 };

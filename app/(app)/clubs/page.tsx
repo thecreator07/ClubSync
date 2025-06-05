@@ -32,7 +32,7 @@ export default function ClubsPage() {
   const [search, setSearch] = useState<string>("");
   const { data: session } = useSession();
   const router = useRouter();
-  const { data, error, isLoading, refetch } = useGetClubsQuery(undefined);
+  const { data, isLoading, refetch } = useGetClubsQuery(undefined);
 
   useEffect(() => {
     if (data) {
@@ -43,9 +43,7 @@ export default function ClubsPage() {
   }, [data, refetch]);
 
   if (isLoading) return <p>Loading clubs...</p>;
-  if (error)
-    return <p className="text-red-500">Error: {JSON.stringify(error)}</p>;
-
+ 
   console.log(clubs);
   const filteredClubs = clubs?.filter(
     (c) =>
@@ -106,9 +104,10 @@ export default function ClubsPage() {
 
       {/* Clubs Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredClubs?.map((club) => {
-          // const thumbnail: ClubImage | undefined = club?.clubImagelist;
-          // console.log(club?.clubImagelist);
+        {filteredClubs && filteredClubs.length > 0 ? (
+          filteredClubs.map((club) => {
+            // const thumbnail: ClubImage | undefined = club?.clubImagelist;
+            // console.log(club?.clubImagelist);
 
           return (
             <Card
@@ -188,7 +187,7 @@ export default function ClubsPage() {
               </CardContent>
             </Card>
           );
-        })}
+        })) : (<p>No clubs found</p>)}
       </div>
     </div>
   );

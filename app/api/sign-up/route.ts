@@ -1,48 +1,120 @@
 // app/api/sign-up/route.ts
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-// import { db } from "@/db/client";
-import { users } from "@/db/schema/users";
-import { eq} from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { createInsertSchema } from 'drizzle-zod'
-// POST /api/sign-up
+import { users } from "@/db/schema/users";
+import { createInsertSchema } from "drizzle-zod";
+import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
+
 export async function POST(req: Request) {
     try {
-        const { email, password, firstname, lastname } = await req.json();
+        const { firstname, lastname, email, password } = await req.json();
 
-        // 1) check if username is already taken by a verified user
-        const [taken] = await db
+        // Check if verified email already exists
+        const [existingVerifiedEmail] = await db
             .select()
             .from(users)
-            .where(
-                eq(users.email, email),
-            )
+            .where(and(eq(users.email, email), eq(users.verified, 1)))
             .limit(1);
 
-        if (taken) {
+        if (existingVerifiedEmail) {
             return NextResponse.json(
-                { success: false, message: "This Email is already Exist" },
+                { success: false, message: "Email is already taken" },
                 { status: 400 }
             );
         }
 
-        const hashed = await bcrypt.hash(password, 10);
-        const userInsertschema = createInsertSchema(users)
-        const parsedData: { email: string, password: string } = userInsertschema.parse({ email, password: hashed,firstname, lastname })
-        const res = await db.insert(users).values(parsedData).returning();
+        const [existingUserByEmail] = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
 
-        return NextResponse.json(
-            {
-                success: true,
-                message: "User registered successfully",
-                data: res[0]
-            },
-            { status: 201 }
-        );
+        const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const verifyExpiry = new Date(Date.now() + 3600000); // 1 hour expiry
+        const hashedPassword = await bcrypt.hash(password, 10);
 
+        if (existingUserByEmail) {
+            if (existingUserByEmail.verified === 1) {
+                return NextResponse.json(
+                    { success: false, message: "User already exists with this email" },
+                    { status: 400 }
+                );
+            } else {
+                // Update unverified user
+                await db
+                    .update(users)
+                    .set({
+                        password: hashedPassword,
+                        verifyCode: verifyCode,
+                        verifyCodeExpiry: verifyExpiry,
+                        firstname: firstname || existingUserByEmail.firstname,
+                        lastname: lastname || existingUserByEmail.lastname,
+                    })
+                    .where(eq(users.email, email));
+                console.log(verifyCode, "existingUserByEmail");
+                const emailResponse = await sendVerificationEmail(email, firstname, verifyCode);
+                if (!emailResponse.success) {
+                    return NextResponse.json(
+                        {
+                            success: false,
+                            message: emailResponse.message,
+                        },
+                        { status: 500 }
+                    );
+                }
+
+                return NextResponse.json(
+                    {
+                        success: true,
+                        message: "User updated. Please verify your account.",
+                        data: existingUserByEmail
+                    },
+                    { status: 200 }
+                );
+
+            }
+        } else {
+            // Insert new unverified user
+            const userInsertSchema = createInsertSchema(users);
+            const parsedUser = userInsertSchema.parse({
+                email,
+                password: hashedPassword,
+                firstname: firstname || "",
+                lastname: lastname || "",
+                role: "student",
+                verified: 0,
+                verifyCode,
+                verifyCodeExpiry: verifyExpiry
+            });
+
+            const [newUser] = await db.insert(users).values(parsedUser).returning();
+            console.log(verifyCode)
+            const emailResponse = await sendVerificationEmail(email, firstname, verifyCode);
+            if (!emailResponse.success) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message: emailResponse.message,
+                    },
+                    { status: 500 }
+                );
+            }
+
+            return NextResponse.json(
+                {
+                    success: true,
+                    message: "User registered successfully. Please verify your account.",
+                    data: newUser,
+                },
+                { status: 201 }
+            );
+
+
+        }
     } catch (err) {
-        console.error("Sign-up error:", err);
+        console.error("Error registering user:", err);
         return NextResponse.json(
             { success: false, message: "Error registering user" },
             { status: 500 }

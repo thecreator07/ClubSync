@@ -15,7 +15,9 @@ export async function middleware(request: NextRequest) {
   if (
     token &&
     (path.startsWith('/sign-in') ||
-      path.startsWith('/sign-up')
+      path.startsWith('/sign-up') ||
+      path.startsWith('/verify') ||
+      path === '/'
     )
   ) {
     return NextResponse.redirect(new URL('/', request.url));
@@ -66,8 +68,11 @@ export async function middleware(request: NextRequest) {
   if (token && path.startsWith('/users')) {
     const userId = token.id.toString()
     const userPath = path.split('/')[2]
+    const actionPath = path.split('/')[3]
     console.log("userPath", userPath)
     if (userId === userPath) {
+      return NextResponse.next()
+    } else if (actionPath === 'verify-code') {
       return NextResponse.next()
     } else {
       return NextResponse.redirect(new URL('/error', request.url))
@@ -95,6 +100,7 @@ export async function middleware(request: NextRequest) {
       }
     }
   }
+  
 
   // Default case: Allow request to proceed
   return NextResponse.next();
