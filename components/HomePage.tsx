@@ -18,6 +18,7 @@ import { useGetMainDataQuery } from "@/services/api/main";
 import { useEffect, useState } from "react";
 import { PopularClubsCarousel } from "./home/ClubCarousel";
 import { UpcomingEventsGrid } from "./home/EventsGrid";
+import clsx from "clsx";
 // import Hero from "./components/landing/Hero";
 // import HowItWorks from "./components/landing/HowItWorks";
 // import ClubCarousel from "./components/landing/ClubCarousel";
@@ -45,7 +46,8 @@ export default function NewLandingPage() {
   const [clubs, setClubs] = useState<ClubWithImage[]>([]);
   const [events, setEvents] = useState<EventWithImage[]>([]);
 //   const router = useRouter();
-
+console.log(data, "data from main query");
+console.log(clubs, "clubs from main query");
   useEffect(() => {
     if (isFetching) {
       setFetchStatus("fetching");
@@ -63,8 +65,8 @@ export default function NewLandingPage() {
     ) {
       refetch();
     } else {
-      setClubs(data?.clubData || []);
-      setEvents(data?.eventsData || []);
+      setClubs(data?.clubData);
+      setEvents(data?.eventsData);
     }
   }, [data, refetch]);
 
