@@ -18,7 +18,7 @@ import { useGetMainDataQuery } from "@/services/api/main";
 import { useEffect, useState } from "react";
 import { PopularClubsCarousel } from "./home/ClubCarousel";
 import { UpcomingEventsGrid } from "./home/EventsGrid";
-import clsx from "clsx";
+
 // import Hero from "./components/landing/Hero";
 // import HowItWorks from "./components/landing/HowItWorks";
 // import ClubCarousel from "./components/landing/ClubCarousel";
