@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
     await resend.emails.send({
       from: "Club Contact <no-reply@amankp.in>",
-      to: "amankumarprasad72@gmail.com", // Replace with actual admin email
+      to: "amankumarprasad43@gmail.com", // Replace with actual admin email
       subject: `New Contact Form Message from ${name}`,
       html: `
         <h2>New Message</h2>

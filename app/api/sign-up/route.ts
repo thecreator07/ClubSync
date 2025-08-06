@@ -6,11 +6,14 @@ import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { createInsertSchema } from "drizzle-zod";
 import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
+import { headers } from "next/headers";
 
 export async function POST(req: Request) {
     try {
         const { firstname, lastname, email, password } = await req.json();
-
+        const host = (await headers()).get('host'); // e.g. "example.com"
+        const proto = (await headers()).get('x-forwarded-proto') || 'https';
+        const origin = `${proto}://${host}`;
         // Check if verified email already exists
         const [existingVerifiedEmail] = await db
             .select()
@@ -54,7 +57,7 @@ export async function POST(req: Request) {
                     })
                     .where(eq(users.email, email));
                 console.log(verifyCode, "existingUserByEmail");
-                const emailResponse = await sendVerificationEmail(email, firstname, verifyCode);
+                const emailResponse = await sendVerificationEmail(email, firstname, verifyCode,origin);
                 if (!emailResponse.success) {
                     return NextResponse.json(
                         {
@@ -89,9 +92,8 @@ export async function POST(req: Request) {
                 verifyCodeExpiry: verifyExpiry
             });
 
-            const [newUser] = await db.insert(users).values(parsedUser).returning();
             console.log(verifyCode)
-            const emailResponse = await sendVerificationEmail(email, firstname, verifyCode);
+            const emailResponse = await sendVerificationEmail(email, firstname, verifyCode,origin);
             if (!emailResponse.success) {
                 return NextResponse.json(
                     {
@@ -101,6 +103,7 @@ export async function POST(req: Request) {
                     { status: 500 }
                 );
             }
+            const [newUser] = await db.insert(users).values(parsedUser).returning();
 
             return NextResponse.json(
                 {

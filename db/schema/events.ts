@@ -2,16 +2,14 @@ import { pgTable, serial, varchar, text, date, integer, timestamp } from "drizzl
 import { clubs } from "./clubs";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations } from "drizzle-orm";
-import { eventRegistrations } from "./participation";
-import { eventImages } from "./images";
 // import { eventImages } from "./images";
 
 export const events = pgTable("events", {
   id: serial("id").primaryKey(),
-  clubId: integer("club_id").references(() => clubs.id), // Linking to the Club
+  clubId: integer("club_id").references(() => clubs.id), 
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description").notNull(),
+  eventType: varchar("event_type", { length: 50 }).notNull(), // e.g., "Workshop", "Seminar", "Social"
   eventDate: date("event_date").notNull(),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time").notNull(),

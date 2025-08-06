@@ -1,6 +1,7 @@
 {
   "name": "club",
   "version": "0.1.0",
+  "owner": "Aman kumar prasad",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

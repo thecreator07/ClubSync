@@ -3,7 +3,7 @@ import { pgTable, serial, varchar, integer, date, pgEnum, timestamp } from 'driz
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-// 1. Define a Postgres ENUM for role
+
 export const roleEnum = pgEnum('role', ['student', 'admin', 'user']);
 
 export const users = pgTable('users', {

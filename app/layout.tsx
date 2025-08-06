@@ -5,10 +5,7 @@ import AuthProvider from "@/context/AuthProvider";
 import { ThemeProvider } from "@/context/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/context/ReduxProvider";
-
-// import { Providers } from "@/context/ReduxProvider";
-// import { PersistGate } from "redux-persist/integration/react";
-// import Navbar from "@/components/NavBar";
+// import { NavbarDemo } from "@/components/NavbarMenu";
 
 export const metadata: Metadata = {
   title: "ClubSync",
@@ -22,11 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`antialiased`}
-      >
-        {/* <Provider store={store}> */}
-        {/* <PersistGate loading={null} persistor={persistor}> */}
+      <body className={`antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -34,12 +27,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <Providers>{children}</Providers>
+            <Providers>
+              {/* <NavbarDemo /> */}
+              {children}
+            </Providers>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>
-        {/* </PersistGate> */}
-        {/* </Provider> */}
       </body>
     </html>
   );

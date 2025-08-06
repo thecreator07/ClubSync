@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         .update(users)
         .set({
           verified: 1,
-          verifyCode: "", 
+          verifyCode: "",
         })
         .where(eq(users.id, user.id));
 

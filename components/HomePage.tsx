@@ -3,7 +3,6 @@
 
 import Hero from "./home/Hero";
 import HowItWorks from "./home/HowItWorks";
-// import ClubCarousel from "./home/ClubCarousel";
 import SuccessStories from "./home/SuccessStories";
 import FinalCta from "./home/FinalCTA";
 import Footer from "./home/Footer";
@@ -14,18 +13,11 @@ import {
   eventSelectSchema,
 } from "@/db/schema&relation";
 import { z } from "zod";
-import { useGetMainDataQuery } from "@/services/api/main";
+// import { useGetMainDataQuery } from "@/services/api/main";
 import { useEffect, useState } from "react";
 import { PopularClubsCarousel } from "./home/ClubCarousel";
 import { UpcomingEventsGrid } from "./home/EventsGrid";
 
-// import Hero from "./components/landing/Hero";
-// import HowItWorks from "./components/landing/HowItWorks";
-// import ClubCarousel from "./components/landing/ClubCarousel";
-// import EventsGrid from "./components/landing/EventsGrid";
-// import SuccessStories from "./components/landing/SuccessStories";
-// import FinalCTA from "./components/landing/FinalCTA";
-// import Footer from "./components/landing/Footer";
 type Club = z.infer<typeof clubSelectSchema>;
 type Event = z.infer<typeof eventSelectSchema>;
 type ClubImage = z.infer<typeof clubImageSelectSchema>;
@@ -39,42 +31,28 @@ export type EventWithImage = {
   event_images: EventImage;
 };
 export default function NewLandingPage() {
-  const { data, error, refetch, isFetching } = useGetMainDataQuery(undefined);
-  const [fetchStatus, setFetchStatus] = useState<"idle" | "fetching" | "error">(
-    "idle"
-  );
+
   const [clubs, setClubs] = useState<ClubWithImage[]>([]);
   const [events, setEvents] = useState<EventWithImage[]>([]);
-//   const router = useRouter();
-console.log(data, "data from main query");
-console.log(clubs, "clubs from main query");
   useEffect(() => {
-    if (isFetching) {
-      setFetchStatus("fetching");
-    } else if (data) {
-      setFetchStatus("idle");
-    } else if (error) {
-      setFetchStatus("error");
-    }
-  }, [data, error, isFetching]);
-
-  useEffect(() => {
-    if (
-      (data && data.clubData.length === 0) ||
-      (data && data.eventsData.length === 0)
-    ) {
-      refetch();
-    } else {
-      setClubs(data?.clubData);
-      setEvents(data?.eventsData);
-    }
-  }, [data, refetch]);
+    fetch("/api/landing")
+      .then((res) => res.json())
+      .then((data) => {
+        setClubs(data.clubData);
+        setEvents(data.eventsData);
+      })
+      .catch((err:unknown) => {
+        console.error("Failed to fetch landing data:", err instanceof Error?err.message:"failed");
+      });
+  }, []);
 
   return (
-    <div className="relative">
+    <div className="">
       <Hero />
       <HowItWorks />
-      <PopularClubsCarousel clubs={clubs} fetchStatus={fetchStatus} />
+      <PopularClubsCarousel
+        clubs={clubs}
+      />
       <UpcomingEventsGrid events={events} />
       <SuccessStories />
       <FinalCta />

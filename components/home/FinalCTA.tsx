@@ -12,7 +12,7 @@ export default function FinalCTA() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: 'easeOut' }}
       viewport={{ once: true }}
-      className="relative isolate overflow-hidden bg-gradient-to-r from-blue-700 via-cyan-500 to-green-400 py-20 sm:py-24 text-white  rounded-3xl shadow-2xlmd:mx-20 px-10 max-w-6xl mx-auto text-center"
+      className="relative overflow-hidden bg-gradient-to-r from-blue-700 via-cyan-500 to-green-400 py-20 sm:py-24 text-white  rounded-3xl shadow-2xlmd:mx-20 px-10 max-w-6xl mx-auto text-center"
     >
       <div className="max-w-3xl mx-auto">
         <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl">

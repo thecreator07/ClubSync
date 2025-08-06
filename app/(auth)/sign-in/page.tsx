@@ -86,14 +86,15 @@ console.log(result)
                 </FormItem>
               )}
             />
-            <Button className="w-full" type="submit">
+            <Button className="w-full cursor-pointer" type="submit">
               Sign In
             </Button>
           </form>
         </Form>
         <div className="text-center mt-4">
+          <p className="text-left underline -mt-4 hover:text-blue-500 cursor-pointer" onClick={()=>{router.push('/forgot-password')}}>Forgot Password</p>
           <p>
-            Not a member yet?{" "}
+            Not a member yet?
             <Link href="/sign-up" className="text-blue-600 hover:text-blue-800">
               Sign up
             </Link>

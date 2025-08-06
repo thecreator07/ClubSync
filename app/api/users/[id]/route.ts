@@ -1,28 +1,20 @@
 // app/api/profile/[userId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db"; // Import the database client
-import { users } from "@/db/schema/users"; // Importing the users schema
-import { eq } from "drizzle-orm"; // For query filtering
-// Importing your NextAuth auth options
-// import { getSession } from "next-auth/react"; // For session management
+import { db } from "@/db"; 
+import { users } from "@/db/schema/users"; 
+import { eq } from "drizzle-orm"; 
 import { userSelectSchema, userUpdateSchema } from "@/db/schema/users"; // Importing the Zod schemas for validation
-// import { z } from "zod";
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/option";
 import { clubs, eventRegistrations, events, members } from "@/db/schema&relation";
-// import { z } from "zod";
-// import { clubs, eventRegistrations, events, members } from "@/db/schema";
 
-// Fetch user profile data based on dynamic userId
 export async function GET(req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { id } = await params;
-        // Extract the userId from the dynamic route params
-
-        // Get the session data from NextAuth (checks if the user is authenticated)
-        const session = await getServerSession(authOptions)
+       const session = await getServerSession(authOptions)
         if (!session?.user?.id) {
             return NextResponse.json(
                 { success: false, message: "User not authenticated" },
@@ -30,15 +22,13 @@ export async function GET(req: NextRequest,
             );
         }
 
-        // Check if the userId from params matches the session userId or if the user is an admin
-        if (session.user.id !== id && session.user.role !== "admin") {
+          if (session.user.id !== id && session.user.role !== "admin") {
             return NextResponse.json(
                 { success: false, message: "Unauthorized access" },
                 { status: 403 }
             );
         }
 
-        // Fetch the user profile data from the database using userId from the dynamic route
         const [user] = await db
             .select()
             .from(users)
@@ -55,7 +45,6 @@ export async function GET(req: NextRequest,
 
         const eventsData = await db.select({ eventId: events.id, eventName: events.name, eventDate: events.eventDate }).from(eventRegistrations).innerJoin(events, eq(eventRegistrations.eventId, events.id)).where(eq(eventRegistrations.userId, Number(id)))
         console.log(eventsData, "eventsData")
-        // Validate the user data using Zod schema
         const parsedUserData = userSelectSchema.parse(user);
         const alldata = {
             parsedUserData, clubsdata, eventsData
@@ -73,9 +62,8 @@ export async function GET(req: NextRequest,
 // Update user profile data based on dynamic userId
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { id } = await params; // Extract the userId from the dynamic route params
+        const { id } = await params; 
         console.log(id, "userid")
-        // Get the session data from NextAuth (checks if the user is authenticated)
         const session = await getServerSession(authOptions)
         console.log(session?.user?.id, "session")
         if (!session?.user?.id) {
@@ -85,19 +73,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             );
         }
 
-        // Check if the userId from params matches the session userId or if the user is an admin
-        if (session.user.id !== id) {
+         if (session.user.id !== id) {
             return NextResponse.json(
                 { success: false, message: "Unauthorized access" },
                 { status: 403 }
             );
         }
 
-        // Parse the request body for updated user data (bio, clubs, etc.)
-        const { firstname, lastname, phone, department, year, semester,aoi } = await req.json();
+         const { firstname, lastname, phone, department, year, semester,aoi } = await req.json();
         console.log(firstname, lastname, phone, department, year, semester)
-        // Validate the incoming data using Zod schema for updates
-        const profileUpdateData = {
+         const profileUpdateData = {
             firstname,
             lastname,
             phone,
@@ -108,11 +93,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             role: session.user.role
         };
 
-        // Validate and parse the data using the userUpdateSchema
-        const parsedData = userUpdateSchema.parse(profileUpdateData);
+          const parsedData = userUpdateSchema.parse(profileUpdateData);
 
-        // Update user profile in the database
-        const updatedUser = await db
+           const updatedUser = await db
             .update(users)
             .set(parsedData)
             .where(eq(users.id, Number(id)))

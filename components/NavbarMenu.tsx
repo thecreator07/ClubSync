@@ -44,19 +44,22 @@ export function NavbarDemo() {
   const router = useRouter();
   console.log(session);
   const handleLogout = async () => {
-    dispatch(clubsApi.util.resetApiState());
-    dispatch(eventsApi.util.resetApiState());
-    dispatch(mainApi.util.resetApiState());
-
-    // dispatch({ type: PURGE });
-    await persistor.purge();
-
-    dispatch({ type: "LOGOUT" });
-
-    signOut({ callbackUrl: "/sign-in" }); // Redirect after logout
+    try {
+      await persistor.purge();
+  
+      dispatch(clubsApi.util.resetApiState());
+      dispatch(eventsApi.util.resetApiState());
+      dispatch(mainApi.util.resetApiState());
+  
+      dispatch({ type: "LOGOUT" });
+  
+      await signOut({ callbackUrl: "/sign-in" });
+    } catch (error:unknown) {
+      console.error("Logout failed:", error instanceof Error ? error.message : "Unknown error");
+    }
   };
   return (
-    <div className="relative z-10 py-6 px-10 text-base">
+    <div className="absolute w-full z-10 py-6 px-10 text-base">
       <Navbar>
         {/* Desktop Navigation */}
         <NavBody className="shadow-2xl border p-2.5 shadow-blue-900">

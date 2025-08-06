@@ -7,15 +7,13 @@ import {
   Row,
   Section,
   Text,
-} from '@react-email/components';
+} from "@react-email/components";
 
 interface ClubCreationEmailProps {
   username: string;
   clubName: string;
   clubSlug: string;
 }
-
-
 
 export default function ClubCreationEmail({
   username,
@@ -30,15 +28,15 @@ export default function ClubCreationEmail({
           fontFamily="Roboto"
           fallbackFontFamily="Verdana"
           webFont={{
-            url: 'https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2',
-            format: 'woff2',
+            url: "https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
+            format: "woff2",
           }}
           fontWeight={400}
           fontStyle="normal"
         />
       </Head>
       <Preview>{clubName} has been successfully created!</Preview>
-      <Section style={{ padding: '20px', fontFamily: 'Roboto, Verdana' }}>
+      <Section style={{ padding: "20px", fontFamily: "Roboto, Verdana" }}>
         <Row>
           <Heading as="h2">🎉 Congratulations, {username}!</Heading>
         </Row>
@@ -50,7 +48,8 @@ export default function ClubCreationEmail({
         </Row>
         <Row>
           <Text>
-            You can manage your club, add members, organize events, and more from your club dashboard.
+            You can manage your club, add members, organize events, and more
+            from your club dashboard.
           </Text>
         </Row>
         <Row>
@@ -58,16 +57,17 @@ export default function ClubCreationEmail({
             Access your club page here:
             <br />
             <a
-              href={`https://yourdomain.com/clubs/${clubSlug}`}
-              style={{ color: '#2563eb' }}
+              href={`${window.location.origin}/clubs/${clubSlug}`}
+              style={{ color: "#2563eb" }}
             >
-              https://yourdomain.com/clubs/{clubSlug}
+              {window.location.origin}/clubs/{clubSlug}
             </a>
           </Text>
         </Row>
         <Row>
           <Text>
-            If you have any questions or need help, feel free to contact support.
+            If you have any questions or need help, feel free to contact
+            support.
           </Text>
         </Row>
         <Row>
